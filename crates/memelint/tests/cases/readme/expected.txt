@@ -1,0 +1,6 @@
+foo.py:2:29: 'ensure' is not approved; use 'make sure' [STE 1.1]
+foo.py:3:7: 'don't' is a contraction; write the words in full [STE 4.2]
+foo.py:3:13: 'delve' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+foo.py:4:7: sentence has 28 words; the STE limit for descriptive text is 25 [STE 6.3]
+foo.py:4:7: 'closing' is the -ing form of 'close'; STE allows only the infinitive, imperative, past tense and past participle [STE 3.5]
+1 files, 1 comments, 5 findings (ASD-STE100 issue 0)

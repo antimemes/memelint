@@ -1,0 +1,67 @@
+# memelint configuration. See README.md.
+
+# Technical names and verbs in the comments and documents of this
+# repository. A word goes here when it is a technical name in this domain,
+# and not when it is only easier English.
+words = [
+  # this project
+  "memelint", "memelint-common", "memelint-import", "allowlist", "checker",
+  "importer", "finding", "vocabulary", "rule", "worktree", "fixture",
+  "overlay",
+  # programs and files
+  "acronym", "binary", "byte", "cache", "cargo", "column", "comment",
+  "config", "default", "diff", "directory", "docstring", "environment",
+  "file", "flag", "font", "glyph", "grammar", "identifier", "json", "library",
+  "line", "loader", "lookup", "markdown", "markup", "matrix", "offset",
+  "parser", "path", "pdf", "regex", "stderr", "stdout", "subcommand", "table",
+  "text", "token", "whitespace",
+  # tools and projects
+  "nix", "nixpkgs", "neovim", "helix", "tree-sitter", "abi", "xdg", "serde",
+  "clap", "acrolinx", "congree", "hyperste",
+  # language and the spec
+  "adjective", "adverb", "article", "conjunction", "contraction",
+  "dictionary", "english", "headword", "imperative", "infinitive",
+  "inflection", "lemma", "meaning", "noun", "paragraph", "participle",
+  "part-of-speech", "phrase", "plural", "possessive", "prefix", "preposition",
+  "pronoun", "prose", "sentence", "speech", "stem", "suffix", "tense", "verb",
+  "word",
+  # more names from the code and the spec
+  "unapproved", "technical", "spec", "issue", "lint", "summary", "parse",
+  "header", "footer", "cell", "qualifier", "project", "document", "section",
+  "vendor", "marker", "baseline", "character", "body", "status", "pos", "adj",
+  "adv", "prep", "conj", "id", "geometry", "indentation", "x-coordinate",
+  "upper-case", "lower-case", "mixed-case", "inflected", "descriptive",
+  "procedural", "checkable", "heuristic", "judgment", "feasibility",
+  "argument", "tally", "paraphrase", "constructor", "field", "signature",
+  "filesystem", "extension",
+  # verbs and nouns of programs, in their technical sense
+  "build", "bundle", "compile", "debug", "export", "extract", "feature",
+  "inline", "join", "language", "list", "load", "map", "merge", "note",
+  "overflow", "padding", "page", "pointer", "print", "process", "program",
+  "return", "run", "sort", "split", "static", "state", "trailing", "unload",
+  "variable", "warning", "wrap", "case", "configuration", "end-to-end",
+  "fixture", "machine",
+  # more technical nouns
+  "form", "letter", "simplified", "shared", "checkability", "parenthesis",
+  "scale", "geometric", "mean", "commit", "package", "context", "message",
+  "block", "command", "multi-word", "parentheses", "layout", "size", "hyphen",
+  "memory",
+  # names of parts of the language, and the section names of the spec
+  "writing", "practice", "punctuation", "semicolon", "colon", "hyphenate",
+  "abbreviation", "title", "quote", "proper", "demonstrative", "singular",
+  "participle", "passive", "modal", "clause", "phrasal", "terminology",
+  "style", "topic", "category", "synonym", "slang", "jargon", "regional",
+  "spelling", "american", "british", "simple", "present", "past", "future",
+  "perfect", "progressive", "construction", "auxiliary", "agent", "heading",
+  "link", "target", "fragment", "substitution", "repository", "organisation",
+  "tagger", "cue", "signal", "clarity", "exception", "key", "label",
+  "caution", "action", "consistent", "consistency", "particle",
+  # more words from the README
+  "domain", "root", "syntax", "development", "workspace", "crate", "format",
+  "commercial", "complex", "rust", "python", "java", "javascript",
+  "typescript", "quotation", "apostrophe", "toolchain", "usage", "wrapper",
+  "derivation", "flake", "tarball", "glob",
+]
+
+# The fixture worktrees have prose that does not follow the rules, as a test.
+ignore = ["crates/memelint/tests/worktrees/"]

@@ -1,0 +1,2 @@
+2 files, 2 comments, 0 findings (ASD-STE100 issue 0)
+note: no grammar for frob; looked for <name>.so in /nonexistent/memelint/grammars

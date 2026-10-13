@@ -1,0 +1,58 @@
+[package]
+name = "memelint"
+description = "Simplified Technical English lint for code comments and prose"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+ignore = "0.4"
+libloading = "0.8"
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+memelint-common.workspace = true
+toml = "1.1.8"
+tree-sitter = "0.27"
+tree-sitter-language = "0.1"
+tree-sitter-c = { version = "0.24.2", optional = true }
+tree-sitter-go = { version = "0.25.0", optional = true }
+tree-sitter-java = { version = "0.23.5", optional = true }
+tree-sitter-javascript = { version = "0.25.0", optional = true }
+tree-sitter-python = { version = "0.25.0", optional = true }
+tree-sitter-rust = { version = "0.24.2", optional = true }
+tree-sitter-typescript = { version = "0.23.2", optional = true }
+tree-sitter-nix = { version = "0.3", optional = true }
+tree-sitter-toml-ng = { version = "0.7", optional = true }
+tree-sitter-md = { version = "0.5", optional = true }
+
+[features]
+default = ["bundled"]
+# Grammars that are compiled into the binary. Thus `memelint check` operates
+# with no grammar directory. All other grammars load from a grammar directory
+# at run time. A package (for example in Nix) can set this feature off and
+# supply the directory.
+bundled = [
+    "dep:tree-sitter-c",
+    "dep:tree-sitter-go",
+    "dep:tree-sitter-java",
+    "dep:tree-sitter-javascript",
+    "dep:tree-sitter-md",
+    "dep:tree-sitter-nix",
+    "dep:tree-sitter-python",
+    "dep:tree-sitter-rust",
+    "dep:tree-sitter-toml-ng",
+    "dep:tree-sitter-typescript",
+]
+
+[dev-dependencies]
+libtest-mimic = "0.8.2"
+serde.workspace = true
+
+# End-to-end runs of `memelint check` on the fixture worktrees in tests/.
+[[test]]
+name = "cases"
+harness = false

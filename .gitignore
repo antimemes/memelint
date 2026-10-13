@@ -1,0 +1,7 @@
+# local direnv config; copy from .envrc.template
+.envrc
+.direnv/
+result
+result-*
+
+target/

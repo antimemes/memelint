@@ -1,0 +1,714 @@
+{
+  "note": "Dictionary for the tests, in the shape `memelint-import asd-ste100` writes. Most content words are made up. A few entries are real rulings of ASD-STE100 (word, part of speech, status and alternative word only), written here by hand. No definition and no example sentence comes from the standard.",
+  "issue": 0,
+  "entries": [
+    {
+      "lemma": "the",
+      "pos": "art",
+      "status": "approved",
+      "forms": [
+        "the"
+      ]
+    },
+    {
+      "lemma": "a",
+      "pos": "art",
+      "status": "approved",
+      "forms": [
+        "a"
+      ]
+    },
+    {
+      "lemma": "an",
+      "pos": "art",
+      "status": "approved",
+      "forms": [
+        "an"
+      ]
+    },
+    {
+      "lemma": "be",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "be",
+        "is",
+        "are",
+        "was",
+        "were",
+        "been"
+      ]
+    },
+    {
+      "lemma": "do",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "do",
+        "does",
+        "did"
+      ]
+    },
+    {
+      "lemma": "have",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "have",
+        "has",
+        "had"
+      ]
+    },
+    {
+      "lemma": "must",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "must"
+      ]
+    },
+    {
+      "lemma": "can",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "can",
+        "cannot"
+      ]
+    },
+    {
+      "lemma": "will",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "will"
+      ]
+    },
+    {
+      "lemma": "to",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "to"
+      ]
+    },
+    {
+      "lemma": "of",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "of"
+      ]
+    },
+    {
+      "lemma": "in",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "in"
+      ]
+    },
+    {
+      "lemma": "on",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "on"
+      ]
+    },
+    {
+      "lemma": "for",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "for"
+      ]
+    },
+    {
+      "lemma": "with",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "with"
+      ]
+    },
+    {
+      "lemma": "from",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "from"
+      ]
+    },
+    {
+      "lemma": "at",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "at"
+      ]
+    },
+    {
+      "lemma": "and",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "and"
+      ]
+    },
+    {
+      "lemma": "or",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "or"
+      ]
+    },
+    {
+      "lemma": "but",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "but"
+      ]
+    },
+    {
+      "lemma": "if",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "if"
+      ]
+    },
+    {
+      "lemma": "when",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "when"
+      ]
+    },
+    {
+      "lemma": "until",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "until"
+      ]
+    },
+    {
+      "lemma": "so",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "so"
+      ]
+    },
+    {
+      "lemma": "then",
+      "pos": "adv",
+      "status": "approved",
+      "forms": [
+        "then"
+      ]
+    },
+    {
+      "lemma": "not",
+      "pos": "adv",
+      "status": "approved",
+      "forms": [
+        "not"
+      ]
+    },
+    {
+      "lemma": "it",
+      "pos": "pron",
+      "status": "approved",
+      "forms": [
+        "it",
+        "its"
+      ]
+    },
+    {
+      "lemma": "this",
+      "pos": "pron",
+      "status": "approved",
+      "forms": [
+        "this",
+        "these"
+      ]
+    },
+    {
+      "lemma": "you",
+      "pos": "pron",
+      "status": "approved",
+      "forms": [
+        "you",
+        "your"
+      ]
+    },
+    {
+      "lemma": "we",
+      "pos": "pron",
+      "status": "approved",
+      "forms": [
+        "we",
+        "our"
+      ]
+    },
+    {
+      "lemma": "each",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "each"
+      ]
+    },
+    {
+      "lemma": "one",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "one"
+      ]
+    },
+    {
+      "lemma": "new",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "new"
+      ]
+    },
+    {
+      "lemma": "open",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "open"
+      ]
+    },
+    {
+      "lemma": "wide",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "wide"
+      ]
+    },
+    {
+      "lemma": "full",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "full"
+      ]
+    },
+    {
+      "lemma": "frob",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "frob",
+        "frobs",
+        "frobbed"
+      ]
+    },
+    {
+      "lemma": "frob",
+      "pos": "adj",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "wide",
+          "pos": "adj"
+        }
+      ]
+    },
+    {
+      "lemma": "lift",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "lift",
+        "lifts",
+        "lifted"
+      ]
+    },
+    {
+      "lemma": "turn",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "turn",
+        "turns",
+        "turned"
+      ]
+    },
+    {
+      "lemma": "wait",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "wait",
+        "waits",
+        "waited"
+      ]
+    },
+    {
+      "lemma": "open",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "open",
+        "opens",
+        "opened"
+      ]
+    },
+    {
+      "lemma": "set",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "set",
+        "sets"
+      ]
+    },
+    {
+      "lemma": "gantry",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "gantry"
+      ]
+    },
+    {
+      "lemma": "dial",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "dial"
+      ]
+    },
+    {
+      "lemma": "hatch",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "hatch"
+      ]
+    },
+    {
+      "lemma": "latch",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "latch"
+      ]
+    },
+    {
+      "lemma": "wall",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "wall"
+      ]
+    },
+    {
+      "lemma": "light",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "light"
+      ]
+    },
+    {
+      "lemma": "count",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "count"
+      ]
+    },
+    {
+      "lemma": "tool",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "tool"
+      ]
+    },
+    {
+      "lemma": "value",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "value"
+      ]
+    },
+    {
+      "lemma": "hoist",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "lift",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "zorch up",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "lift",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "snarf",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "frob",
+          "pos": "v"
+        },
+        {
+          "word": "turn",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "quux",
+      "pos": "n",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "gantry",
+          "pos": "n"
+        }
+      ]
+    },
+    {
+      "lemma": "grue",
+      "pos": "adj",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "wide",
+          "pos": "adj"
+        }
+      ]
+    },
+    {
+      "lemma": "blorp",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "blorp",
+          "pos": "TN"
+        }
+      ]
+    },
+    {
+      "lemma": "zap",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "zap",
+          "pos": "TV"
+        }
+      ]
+    },
+    {
+      "lemma": "close",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "close",
+        "closes",
+        "closed"
+      ]
+    },
+    {
+      "lemma": "close",
+      "pos": "adj",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "near",
+          "pos": "prep"
+        }
+      ]
+    },
+    {
+      "lemma": "close to",
+      "pos": "adv",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "near",
+          "pos": "prep"
+        }
+      ]
+    },
+    {
+      "lemma": "near",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "near"
+      ]
+    },
+    {
+      "lemma": "use",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "use",
+        "uses",
+        "used"
+      ]
+    },
+    {
+      "lemma": "utilize",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "use",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "indication",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "indication"
+      ]
+    },
+    {
+      "lemma": "reading",
+      "pos": "n",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "indication",
+          "pos": "n"
+        }
+      ]
+    },
+    {
+      "lemma": "make",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "make",
+        "makes",
+        "made"
+      ]
+    },
+    {
+      "lemma": "sure",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "sure"
+      ]
+    },
+    {
+      "lemma": "slowly",
+      "pos": "adv",
+      "status": "approved",
+      "forms": [
+        "slowly"
+      ]
+    },
+    {
+      "lemma": "stable",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "stable"
+      ]
+    },
+    {
+      "lemma": "keep",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "keep",
+        "keeps",
+        "kept"
+      ]
+    },
+    {
+      "lemma": "safe",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "safe"
+      ]
+    },
+    {
+      "lemma": "system",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "system"
+      ]
+    },
+    {
+      "lemma": "seal",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "seal"
+      ]
+    },
+    {
+      "lemma": "before",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "before"
+      ]
+    },
+    {
+      "lemma": "that",
+      "pos": "conj",
+      "status": "approved",
+      "forms": [
+        "that"
+      ]
+    },
+    {
+      "lemma": "ensure",
+      "pos": "v",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "make sure",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "into",
+      "pos": "prep",
+      "status": "approved",
+      "forms": [
+        "into"
+      ]
+    }
+  ]
+}

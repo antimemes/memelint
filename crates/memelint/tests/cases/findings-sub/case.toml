@@ -1,0 +1,3 @@
+# Only the files in one directory.
+worktree = "findings"
+args = ["sub"]

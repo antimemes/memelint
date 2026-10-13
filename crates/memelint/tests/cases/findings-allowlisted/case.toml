@@ -1,0 +1,3 @@
+# The same worktree with a project allowlist that accepts the technical
+# names and verbs; see overlay/memelint.toml.
+worktree = "findings"
