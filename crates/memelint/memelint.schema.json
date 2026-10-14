@@ -6,6 +6,12 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "profile": {
+      "description": "The severity of each rule before `rules`. strict: each finding is an error. basic: unknown words (1.6) and long sentences (6.3) are warnings. Default: strict.",
+      "type": "string",
+      "enum": ["strict", "basic"]
+    },
+    "rules": { "$ref": "#/$defs/rules" },
     "words": { "$ref": "#/$defs/words" },
     "word-lists": { "$ref": "#/$defs/word-lists" },
     "default-word-lists": {
@@ -18,12 +24,13 @@
       "items": { "type": "string" }
     },
     "languages": {
-      "description": "Words for the files of one language, by tree-sitter grammar name.",
+      "description": "The configuration for the files of one language, by tree-sitter grammar name.",
       "type": "object",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "rules": { "$ref": "#/$defs/rules" },
           "words": { "$ref": "#/$defs/words" },
           "word-lists": { "$ref": "#/$defs/word-lists" },
           "default-word-lists": {
@@ -35,6 +42,23 @@
     }
   },
   "$defs": {
+    "severity": {
+      "type": "string",
+      "enum": ["error", "warning", "off"]
+    },
+    "rules": {
+      "description": "The severity of one rule, by ASD-STE100 rule id.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "1.1": { "$ref": "#/$defs/severity", "description": "Use only approved words, technical nouns and technical verbs." },
+        "1.2": { "$ref": "#/$defs/severity", "description": "Use approved words only as their listed part of speech." },
+        "1.6": { "$ref": "#/$defs/severity", "description": "An unapproved word only when it is a technical noun." },
+        "3.5": { "$ref": "#/$defs/severity", "description": "-ing only in technical nouns." },
+        "4.2": { "$ref": "#/$defs/severity", "description": "No words removed, no contractions." },
+        "6.3": { "$ref": "#/$defs/severity", "description": "Descriptive sentences of at most 25 words." }
+      }
+    },
     "words": {
       "description": "Technical names and verbs that the project accepts.",
       "type": "array",

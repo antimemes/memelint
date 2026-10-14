@@ -1,0 +1,7 @@
+profile = "basic"
+
+[rules]
+"4.2" = "off"
+
+[languages.javascript.rules]
+"1.1" = "off"

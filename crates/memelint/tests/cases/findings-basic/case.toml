@@ -1,0 +1,3 @@
+# The same worktree with the basic profile, one rule off, and one rule off
+# for JavaScript only.
+worktree = "findings"

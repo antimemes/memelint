@@ -1,2 +1,2 @@
-sub/notes.c:1:4: 'hoist' is not approved; use 'lift' [STE 1.1]
-1 files, 1 comments, 1 findings (ASD-STE100 issue 0)
+sub/notes.c:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+1 files, 1 comments, 1 errors, 0 warnings (ASD-STE100 issue 0)

@@ -1,20 +1,32 @@
 //! The project configuration: `memelint.toml` at the project root.
 //!
 //! ```toml
+//! profile = "strict"                           # or "basic"
 //! words = ["gantry", "sprocket"]               # for all files
 //! word-lists = ["words.txt", "https://example.com/team-words.txt"]
 //! default-word-lists = true                    # the bundled lists
 //! ignore = ["vendor/", "*.generated.go"]
 //!
+//! [rules]                                      # by ASD-STE100 rule id
+//! "6.3" = "warning"                            # "error", "warning" or "off"
+//!
 //! [languages.rust]                             # for files of one language
 //! words = ["monomorphize"]
 //! word-lists = ["rust-words.txt"]
 //! default-word-lists = true
+//!
+//! [languages.rust.rules]
+//! "1.6" = "off"
 //! ```
 //!
 //! An entry of `word-lists` is a path, a URL, or the name of a bundled list.
 //! The entries add to the bundled lists, unless `default-word-lists` is
 //! not set. A URL is read from the cache that `memelint fetch` fills.
+//!
+//! The profile gives each rule a severity. `[rules]` changes it for one
+//! rule, and `[languages.<name>.rules]` for one rule in one language.
+//! `strict` makes each finding an error. `basic` makes unknown words (1.6)
+//! and long sentences (6.3) warnings.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -23,13 +35,35 @@ use anyhow::{Context, Result, bail};
 use serde::Deserialize;
 
 use crate::check::Allowlist;
-use crate::defaults;
+use crate::rules::{Does, Feasibility};
+use crate::{defaults, rules};
 
 pub const CONFIG_FILE: &str = "memelint.toml";
 
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Profile {
+    Strict,
+    Basic,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Severity {
+    Error,
+    Warning,
+    Off,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Config {
+    /// The severity of each rule, before `rules`. Default: strict.
+    #[serde(default = "strict")]
+    pub profile: Profile,
+    /// The severity of one rule, by ASD-STE100 rule id.
+    #[serde(default)]
+    pub rules: BTreeMap<String, Severity>,
     /// Technical names and verbs that the project accepts, for all files.
     #[serde(default)]
     pub words: Vec<String>,
@@ -43,14 +77,23 @@ pub struct Config {
     /// Paths that are not examined, in the syntax of `.gitignore`.
     #[serde(default)]
     pub ignore: Vec<String>,
-    /// Words for the files of one language, by grammar name.
+    /// The configuration for the files of one language, by grammar name.
     #[serde(default)]
-    pub languages: BTreeMap<String, LanguageWords>,
+    pub languages: BTreeMap<String, Language>,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        toml::from_str("").expect("an empty configuration is valid")
+    }
 }
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
-pub struct LanguageWords {
+pub struct Language {
+    /// The severity of one rule, for the files of this language.
+    #[serde(default)]
+    pub rules: BTreeMap<String, Severity>,
     #[serde(default)]
     pub words: Vec<String>,
     /// Word lists for the files of this language.
@@ -64,6 +107,10 @@ fn yes() -> bool {
     true
 }
 
+fn strict() -> Profile {
+    Profile::Strict
+}
+
 impl Config {
     /// Read `path`, or use the defaults when there is no file.
     pub fn load(path: &Path) -> Result<Self> {
@@ -72,7 +119,28 @@ impl Config {
         }
         let text = std::fs::read_to_string(path)
             .with_context(|| format!("cannot read {}", path.display()))?;
-        toml::from_str(&text).with_context(|| format!("{} is not valid", path.display()))
+        let config: Self =
+            toml::from_str(&text).with_context(|| format!("{} is not valid", path.display()))?;
+        let language_rules = config.languages.values().flat_map(|l| l.rules.keys());
+        for id in config.rules.keys().chain(language_rules) {
+            check_rule_id(id)?;
+        }
+        Ok(config)
+    }
+
+    /// The severity of a rule in files of `language`: from the rules of the
+    /// language, then from `rules`, then from the profile.
+    pub fn severity(&self, rule: &str, language: &str) -> Severity {
+        if let Some(s) = self.languages.get(language).and_then(|l| l.rules.get(rule)) {
+            return *s;
+        }
+        if let Some(s) = self.rules.get(rule) {
+            return *s;
+        }
+        match (self.profile, rule) {
+            (Profile::Basic, "1.6" | "6.3") => Severity::Warning,
+            _ => Severity::Error,
+        }
     }
 
     /// The accepted words for files of `language`: the bundled lists, then
@@ -117,6 +185,28 @@ impl Config {
     }
 }
 
+/// A rule id in `[rules]` must be a rule that gives findings.
+fn check_rule_id(id: &str) -> Result<()> {
+    if rules::CHECKED.contains(&id) {
+        return Ok(());
+    }
+    let Some(rule) = rules::find(id) else {
+        bail!("there is no rule {id}; the rules are 1.1 to 9.4");
+    };
+    let why = match (rule.does, rule.feasibility) {
+        (Does::No, Feasibility::Judgment | Feasibility::NotApplicable) => {
+            "a program cannot check it"
+        }
+        (Does::No, _) => "memelint does not check it yet",
+        _ => "it gives no findings of its own",
+    };
+    bail!(
+        "rule {id} ({}) cannot be set: {why}; the rules that give findings are {}",
+        rule.summary,
+        rules::CHECKED.join(", ")
+    )
+}
+
 pub fn is_url(source: &str) -> bool {
     source.starts_with("https://") || source.starts_with("http://")
 }
@@ -155,27 +245,40 @@ fn read_list(source: &str, dir: &Path) -> Result<String> {
 mod tests {
     use super::*;
 
+    fn config(toml: &str) -> Config {
+        toml::from_str(toml).unwrap()
+    }
+
     fn allowlist(toml: &str, language: &str) -> Allowlist {
-        let c: Config = toml::from_str(toml).unwrap();
-        c.allowlist(language, Path::new("memelint.toml")).unwrap()
+        config(toml)
+            .allowlist(language, Path::new("memelint.toml"))
+            .unwrap()
     }
 
     #[test]
     fn parses_all_fields() {
-        let c: Config = toml::from_str(
+        let c = config(
             r#"
+            profile = "basic"
             words = ["gantry", "sprocket"]
             word-lists = ["more.txt", "https://example.com/w.txt"]
             default-word-lists = false
             ignore = ["vendor/"]
 
+            [rules]
+            "6.3" = "off"
+
             [languages.rust]
             words = ["frobnicate"]
             word-lists = ["rust.txt"]
             default-word-lists = true
+
+            [languages.rust.rules]
+            "1.6" = "warning"
             "#,
-        )
-        .unwrap();
+        );
+        assert_eq!(c.profile, Profile::Basic);
+        assert_eq!(c.rules["6.3"], Severity::Off);
         assert_eq!(c.words, ["gantry", "sprocket"]);
         assert_eq!(c.word_lists, ["more.txt", "https://example.com/w.txt"]);
         assert!(!c.default_word_lists);
@@ -183,12 +286,54 @@ mod tests {
         assert_eq!(c.languages["rust"].words, ["frobnicate"]);
         assert_eq!(c.languages["rust"].word_lists, ["rust.txt"]);
         assert_eq!(c.languages["rust"].default_word_lists, Some(true));
+        assert_eq!(c.languages["rust"].rules["1.6"], Severity::Warning);
         assert_eq!(c.urls(), ["https://example.com/w.txt"]);
     }
 
     #[test]
     fn unknown_fields_are_errors() {
         assert!(toml::from_str::<Config>("wrods = []").is_err());
+    }
+
+    #[test]
+    fn severities() {
+        let c = Config::default();
+        assert_eq!(c.severity("1.1", "rust"), Severity::Error);
+        assert_eq!(c.severity("6.3", "rust"), Severity::Error);
+        let c = config("profile = \"basic\"");
+        assert_eq!(c.severity("1.1", "rust"), Severity::Error);
+        assert_eq!(c.severity("1.6", "rust"), Severity::Warning);
+        assert_eq!(c.severity("6.3", "rust"), Severity::Warning);
+        let c = config("[rules]\n\"1.1\" = \"off\"\n\"6.3\" = \"warning\"");
+        assert_eq!(c.severity("1.1", "rust"), Severity::Off);
+        assert_eq!(c.severity("6.3", "rust"), Severity::Warning);
+        assert_eq!(c.severity("4.2", "rust"), Severity::Error);
+    }
+
+    #[test]
+    fn severities_for_one_language() {
+        let c =
+            config("[rules]\n\"1.6\" = \"warning\"\n[languages.markdown.rules]\n\"1.6\" = \"off\"");
+        assert_eq!(c.severity("1.6", "markdown"), Severity::Off);
+        assert_eq!(c.severity("1.6", "rust"), Severity::Warning);
+        assert_eq!(c.severity("1.1", "markdown"), Severity::Error);
+    }
+
+    #[test]
+    fn rules_that_give_no_findings_are_errors() {
+        let dir = std::env::temp_dir().join(format!("memelint-config-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("memelint.toml");
+        std::fs::write(&path, "[rules]\n\"6.4\" = \"off\"").unwrap();
+        let err = Config::load(&path).unwrap_err().to_string();
+        std::fs::write(&path, "[rules]\n\"12.1\" = \"off\"").unwrap();
+        let err2 = Config::load(&path).unwrap_err().to_string();
+        std::fs::write(&path, "[languages.rust.rules]\n\"5.1\" = \"off\"").unwrap();
+        let err3 = Config::load(&path).unwrap_err().to_string();
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(err.contains("6.4") && err.contains("cannot check") && err.contains("1.1"));
+        assert!(err2.contains("no rule 12.1"));
+        assert!(err3.contains("5.1") && err3.contains("not check it yet"));
     }
 
     #[test]
@@ -227,8 +372,7 @@ mod tests {
     fn bundled_names_and_files_in_word_lists() {
         // A bundled name for all files, with the defaults off.
         let python = allowlist(
-            r#"default-word-lists = false
-            word-lists = ["rust"]"#,
+            "default-word-lists = false\nword-lists = [\"rust\"]",
             "python",
         );
         assert!(python.allows("crate") && !python.allows("byte"));
@@ -236,13 +380,12 @@ mod tests {
         let dir = std::env::temp_dir().join(format!("memelint-words-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("w.txt"), "# ours\nflange\n").unwrap();
-        let c: Config = toml::from_str(r#"word-lists = ["w.txt"]"#).unwrap();
+        let c = config(r#"word-lists = ["w.txt"]"#);
         let allow = c.allowlist("python", &dir.join("memelint.toml")).unwrap();
         std::fs::remove_dir_all(&dir).unwrap();
         assert!(allow.allows("flanges"));
         // A URL that is not in the cache is an error that names the command.
-        let c: Config =
-            toml::from_str(r#"word-lists = ["https://nonexistent.invalid/w.txt"]"#).unwrap();
+        let c = config(r#"word-lists = ["https://nonexistent.invalid/w.txt"]"#);
         let err = c
             .allowlist("python", Path::new("memelint.toml"))
             .unwrap_err();
@@ -274,6 +417,8 @@ mod schema {
                 "default-word-lists",
                 "ignore",
                 "languages",
+                "profile",
+                "rules",
                 "word-lists",
                 "words"
             ]
@@ -281,18 +426,43 @@ mod schema {
         let language = &schema["properties"]["languages"]["additionalProperties"];
         assert_eq!(
             keys(language),
-            ["default-word-lists", "word-lists", "words"]
+            ["default-word-lists", "rules", "word-lists", "words"]
         );
+        // Each `rules` table refers to the one definition. Its ids are the
+        // rules that give findings.
+        for rules in [
+            &schema["properties"]["rules"],
+            &language["properties"]["rules"],
+        ] {
+            assert_eq!(rules["$ref"], "#/$defs/rules");
+        }
+        {
+            let mut ids: Vec<&str> = schema["$defs"]["rules"]["properties"]
+                .as_object()
+                .unwrap()
+                .keys()
+                .map(String::as_str)
+                .collect();
+            ids.sort();
+            let mut checked = crate::rules::CHECKED.to_vec();
+            checked.sort();
+            assert_eq!(ids, checked);
+        }
         // The config accepts each key that the schema names.
         let all = r#"
+            profile = "basic"
             words = []
             word-lists = []
             default-word-lists = true
             ignore = []
+            [rules]
+            "1.1" = "error"
             [languages.rust]
             words = []
             word-lists = []
             default-word-lists = false
+            [languages.rust.rules]
+            "1.1" = "off"
         "#;
         toml::from_str::<super::Config>(all).unwrap();
     }

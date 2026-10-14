@@ -4,7 +4,7 @@
 //! worktree in `tests/worktrees/` and the arguments for `check`.
 //! `expected.txt` is the output of memelint: the findings (stdout), then the
 //! summary and the notes (stderr). The exit status must be 1 when the summary
-//! counts findings and 0 if it does not. The number of finding lines must
+//! counts errors and 0 if it does not. The number of finding lines must
 //! agree with the summary.
 //!
 //! Before the run, we make a copy of the worktree in a work directory. We put
@@ -104,18 +104,23 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
         .into());
     }
 
-    let findings = stderr
-        .lines()
-        .find_map(|l| l.split_once(" findings").map(|(before, _)| before))
-        .and_then(|before| before.rsplit(' ').next()?.parse::<usize>().ok())
-        .ok_or("no summary line on stderr")?;
+    let count = |label: &str| -> Result<usize, Failed> {
+        stderr
+            .lines()
+            .find_map(|l| l.split_once(label).map(|(before, _)| before))
+            .and_then(|before| before.rsplit(' ').next()?.parse::<usize>().ok())
+            .ok_or_else(|| format!("no {label} count on stderr").into())
+    };
+    let errors = count(" errors")?;
+    let warnings = count(" warnings")?;
     let lines = stdout.lines().count();
-    if lines != findings {
-        return Err(
-            format!("summary counts {findings} findings but stdout has {lines} lines").into(),
-        );
+    if lines != errors + warnings {
+        return Err(format!(
+            "summary counts {errors} errors and {warnings} warnings but stdout has {lines} lines"
+        )
+        .into());
     }
-    let want = i32::from(findings > 0);
+    let want = i32::from(errors > 0);
     if output.status.code() != Some(want) {
         return Err(format!("exit status {:?}, expected {want}", output.status.code()).into());
     }

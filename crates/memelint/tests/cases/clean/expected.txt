@@ -1,3 +1,3 @@
-memelint.toml:1:3: 'part' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
-memelint.toml:1:8: 'names' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
-3 files, 7 comments, 2 findings (ASD-STE100 issue 0)
+memelint.toml:1:3: error: 'part' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+memelint.toml:1:8: error: 'names' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+3 files, 7 comments, 2 errors, 0 warnings (ASD-STE100 issue 0)

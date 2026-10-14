@@ -90,7 +90,7 @@ fn run_check(
         walk.add(root);
     }
 
-    let (mut files, mut comments, mut findings) = (0usize, 0usize, 0usize);
+    let (mut files, mut comments, mut errors, mut warnings) = (0usize, 0usize, 0usize, 0usize);
     for entry in walk.build() {
         let entry = entry?;
         let path = entry.path();
@@ -113,9 +113,19 @@ fn run_check(
         for comment in extract::extract(&grammar, &source) {
             comments += 1;
             for f in check::check(&comment, &dict, allow) {
-                findings += 1;
+                let severity = match config.severity(f.rule, &grammar.name) {
+                    config::Severity::Off => continue,
+                    config::Severity::Error => {
+                        errors += 1;
+                        "error"
+                    }
+                    config::Severity::Warning => {
+                        warnings += 1;
+                        "warning"
+                    }
+                };
                 println!(
-                    "{shown}:{}:{}: {} [STE {}]",
+                    "{shown}:{}:{}: {severity}: {} [STE {}]",
                     f.line, f.col, f.message, f.rule
                 );
             }
@@ -123,7 +133,7 @@ fn run_check(
     }
 
     eprintln!(
-        "{files} files, {comments} comments, {findings} findings (ASD-STE100 issue {})",
+        "{files} files, {comments} comments, {errors} errors, {warnings} warnings (ASD-STE100 issue {})",
         dict.issue.map_or("?".to_string(), |i| i.to_string())
     );
     if !grammars.missing.is_empty() {
@@ -139,7 +149,7 @@ fn run_check(
             dirs.join(", ")
         );
     }
-    if findings > 0 {
+    if errors > 0 {
         std::process::exit(1);
     }
     Ok(())
