@@ -15,7 +15,14 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 ## Usage
 
-[Nix](https://nixos.org/download/) is necessary. This builds the checker with the ASD-STE100 vocabulary and with each tree-sitter grammar that nixpkgs has, and runs it:
+The release binaries are for Linux and macOS, on x86_64 and aarch64:
+
+```bash
+curl -fsSL https://memelint.antimemetics.institute/install.sh | sh
+memelint check
+```
+
+With [Nix](https://nixos.org/download/), there is no installation. This builds the checker with the ASD-STE100 vocabulary and with each tree-sitter grammar that nixpkgs has, and runs it:
 
 ```bash
 $(nix-build --no-out-link \
@@ -27,6 +34,24 @@ With flakes:
 
 ```bash
 nix run github:antimemes/memelint -- check
+```
+
+In GitHub Actions, put this in `.github/workflows/memelint.yml`. The findings become annotations on the pull request:
+
+```yaml
+name: memelint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: antimemes/memelint@latest
 ```
 
 ## Rules
@@ -78,13 +103,13 @@ Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore
 
 ## The dictionary
 
-ASD-STE100 is free to download, but it has copyright. Thus the memelint binary does not contain the dictionary. The Nix package makes the vocabulary from the PDF on your machine. With a different installation, make it one time on each machine:
+ASD-STE100 is free to download, but it is copyrighted. Thus the memelint binary does not contain the dictionary. The first run downloads the PDF from ASD and makes the vocabulary in `~/.cache/memelint/`, which is not in your projects. The Nix package makes it when it builds. To make it from a PDF that you have:
 
 ```bash
 memelint-import asd-ste100 --pdf ASD-STE100_ISSUE9.pdf
 ```
 
-This writes the vocabulary to `~/.cache/memelint/`, which is not in your projects. `--vocab` or `MEMELINT_VOCAB` point the checker to a different file.
+`--vocab` or `MEMELINT_VOCAB` point the checker to a different file.
 
 ## Development
 
