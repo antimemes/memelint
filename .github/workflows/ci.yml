@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    name: Build, test and check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: NixOS/nix-installer-action@v1
+
+      # Builds the checker, the importer and the vocabulary, and runs the
+      # cargo tests of each crate.
+      - name: Build and test
+        run: nix build .#default --print-build-logs
+
+      - name: Build the documentation
+        run: nix build .#docs --print-build-logs --out-link result-docs
+
+      # The findings become annotations on the pull request.
+      - name: Check this repository with memelint
+        run: |
+          echo "::add-matcher::.github/memelint-matcher.json"
+          ./result/bin/memelint check
