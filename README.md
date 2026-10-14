@@ -1,6 +1,6 @@
 # memelint
 
-[![documentation](https://img.shields.io/badge/docs-memelint.antimemetics.institute-blue)](https://memelint.antimemetics.institute)
+[![documentation](https://img.shields.io/badge/docs-blue)](https://memelint.antimemetics.institute)
 
 Simplified Technical English lint for code comments and prose. memelint reads the comments and docstrings in your source files and tells you which words and sentences do not follow ASD-STE100. Markdown files are read as prose.
 
