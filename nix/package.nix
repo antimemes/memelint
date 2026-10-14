@@ -46,6 +46,10 @@ let
     memelint-import asd-ste100 --pdf ${ste100Pdf} --out $out/asd-ste100.json
   '';
 
+  docs = pkgs.runCommand "memelint-docs-${version}" { nativeBuildInputs = [ pkgs.mdbook ]; } ''
+    mdbook build ${../docs} -d $out
+  '';
+
   memelint = pkgs.symlinkJoin {
     name = "memelint-${version}";
     paths = [ memelint-unwrapped ];
@@ -60,6 +64,6 @@ let
 in
 {
   default = memelint;
-  inherit memelint memelint-import vocabulary grammars;
+  inherit memelint memelint-import vocabulary grammars docs;
   unwrapped = memelint-unwrapped;
 }

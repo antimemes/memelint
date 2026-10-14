@@ -7,6 +7,7 @@ pkgs.mkShell {
     clippy
     rustfmt
     rust-analyzer
+    mdbook
   ];
 
   RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";

@@ -1,5 +1,7 @@
 # memelint
 
+[![documentation](https://img.shields.io/badge/docs-memelint.antimemetics.institute-blue)](https://memelint.antimemetics.institute)
+
 Simplified Technical English lint for code comments and prose. memelint reads the comments and docstrings in your source files and tells you which words and sentences do not follow ASD-STE100. Markdown files are read as prose.
 
 ```console
@@ -68,9 +70,9 @@ word-lists = ["words.txt", "https://example.com/team-words.txt"]
 words = ["monomorphize"]
 ```
 
-A word list has one word on each line. `memelint fetch` downloads the URLs into the cache. The bundled lists are in `crates/memelint/words/`.
+A word list has one word on each line. `memelint fetch` downloads the URLs into the cache. [The word lists](crates/memelint/words/) are not complete. If you add words, send a pull request.
 
-A long list can go in a different file with `words-file = "words.txt"`. Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`.
+Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`. The [documentation](docs/src/configuration.md) has each key.
 
 ## The dictionary
 
@@ -84,7 +86,7 @@ This writes the vocabulary to `~/.cache/memelint/`, which is not in your project
 
 ## Development
 
-`nix develop` gives you the toolchain, the PDF and all grammars. The workspace has 3 crates: `memelint` (the checker), `memelint-import` (the importer) and `memelint-common` (the vocabulary file and its location). The end-to-end tests in `crates/memelint/tests/cases/` compare the output of `memelint check` on fixture worktrees with `expected.txt`. `UPDATE_EXPECT=1 cargo test --test cases` writes the correct output again after a change.
+`nix develop` gives you the toolchain, the PDF and all grammars. The workspace has 3 crates: `memelint` (the checker), `memelint-import` (the importer) and `memelint-common` (the vocabulary file and its location). The end-to-end tests in `crates/memelint/tests/cases/` compare the output of `memelint check` on fixture worktrees with `expected.txt`. `UPDATE_EXPECT=1 cargo test --test cases` writes the correct output again after a change. The documentation is an mdBook in `docs/`: `mdbook serve docs`.
 
 ## License
 

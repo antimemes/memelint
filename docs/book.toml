@@ -1,0 +1,6 @@
+[book]
+title = "memelint"
+language = "en"
+
+[output.html]
+git-repository-url = "https://github.com/antimemes/memelint"
