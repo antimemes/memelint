@@ -66,3 +66,8 @@ words = [
 
 # The fixture worktrees have prose that does not follow the rules, as a test.
 ignore = ["crates/memelint/tests/worktrees/"]
+
+# The README and the documentation use one verb that is not approved. It is
+# in them for its meaning, and only there.
+[languages.markdown]
+words = ["spread"]

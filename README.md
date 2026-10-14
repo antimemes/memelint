@@ -2,7 +2,7 @@
 
 [![documentation](https://img.shields.io/badge/docs-blue)](https://memelint.antimemetics.institute)
 
-Simplified Technical English lint for code comments and prose. memelint reads the comments and docstrings in your source files and tells you which words and sentences do not follow ASD-STE100. Markdown files are read as prose.
+memelint lints the words that spread through comments, docstrings, and documentation. It tells you which words and sentences do not follow Simplified Technical English (ASD-STE100), with an allowlist for the words of your project.
 
 ```console
 $ memelint check
@@ -79,15 +79,13 @@ profile = "basic"       # "strict" (the default) makes each finding an error.
 "1.6" = "off"           # no unknown-word findings in Markdown files
 ```
 
-The other rules are in [`crates/memelint/src/rules.rs`](https://github.com/antimemes/memelint/blob/main/crates/memelint/src/rules.rs), with a note on how much of each one a program can check.
-
 ## Languages
 
-memelint lints all languages that have a [tree-sitter grammar](https://tree-sitter.github.io/tree-sitter/#parsers). Rust, Python, JavaScript, TypeScript, Go, C, Java, Nix, TOML and Markdown are compiled in. For each other language, memelint loads `<name>.so` from a grammar directory: `--grammars`, `MEMELINT_GRAMMARS` or `~/.local/share/memelint/grammars`. These are the tree-sitter grammar files that Neovim and nixpkgs use.
+memelint lints all languages that have a [tree-sitter grammar](https://tree-sitter.github.io/tree-sitter/#parsers). Rust, Python, JavaScript, TypeScript, Go, C, Java, Nix, TOML and Markdown are compiled in. The Nix package has each grammar that nixpkgs has. Other installations load `<name>.so` grammar files, the files that Neovim uses, from a directory.
 
 ## Your words
 
-Technical names from your domain are not in the dictionary. memelint has lists of the technical names of software and of each language, and uses them unless you set `default-word-lists = false`. Put the names of your project in `memelint.toml` at the project root, and examine that file as you examine code:
+Technical names from your domain are not in the dictionary. memelint has lists of the technical names of software and of each language. Put the words of your project in `memelint.toml` at the project root, and examine that file as you examine code:
 
 ```toml
 words = ["gantry", "sprocket"]
@@ -97,9 +95,9 @@ word-lists = ["words.txt", "https://example.com/team-words.txt"]
 words = ["monomorphize"]
 ```
 
-A word list has one word on each line. `memelint fetch` downloads the URLs into the cache. [The word lists](crates/memelint/words/) are not complete. If you add words, send a pull request.
+A word list has one word on each line. The list of a project becomes long; the [`memelint.toml`](memelint.toml) of this repository is an example.
 
-Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`. The [documentation](https://memelint.antimemetics.institute/) has each key.
+[The bundled word lists](crates/memelint/words/) are not complete, and your help is necessary. When you add a word of your language or of software to your list, send it in a pull request.
 
 ## Development
 
@@ -122,7 +120,7 @@ Without flakes:
 nix-shell
 ```
 
-The shell has the toolchain, the PDF and all grammars. `task --list` shows the development commands.
+`task --list` shows the development commands.
 
 ## License
 

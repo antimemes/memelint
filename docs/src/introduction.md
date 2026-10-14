@@ -1,6 +1,6 @@
 # memelint
 
-memelint is a lint for Simplified Technical English (ASD-STE100). It reads the comments and docstrings in source files, and Markdown files as prose. It tells you which words and sentences do not follow the standard.
+memelint lints the words that spread through comments, docstrings, and documentation. It tells you which words and sentences do not follow Simplified Technical English (ASD-STE100), with an allowlist for the words of your project.
 
 Each finding gives the file, the position, the severity, the message and the rule:
 
