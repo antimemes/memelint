@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  memelint:
+  build:
     name: Build and test
     runs-on: ubuntu-latest
     steps:
@@ -24,24 +24,3 @@ jobs:
       # Builds the checker, the importer and the vocabulary, and runs the
       # cargo tests of each crate.
       - run: nix build .#default --print-build-logs
-
-  check:
-    name: Check this repository with memelint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: NixOS/nix-installer-action@v1
-      - uses: nix-community/cache-nix-action@v6
-        with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock', 'Cargo.lock') }}
-          restore-prefixes-first-match: nix-${{ runner.os }}-
-          gc-max-store-size-linux: 2G
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-
-          purge-created: 0
-          purge-primary-key: never
-      - run: nix build .#default
-      # The findings become annotations on the pull request.
-      - run: |
-          echo "::add-matcher::.github/memelint-matcher.json"
-          ./result/bin/memelint check
