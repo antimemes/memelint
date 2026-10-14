@@ -175,6 +175,7 @@ impl Config {
     }
 
     /// All the URLs in the configuration.
+    #[cfg(any(feature = "fetch", test))]
     pub fn urls(&self) -> Vec<&str> {
         self.word_lists
             .iter()
@@ -231,7 +232,13 @@ fn read_list(source: &str, dir: &Path) -> Result<String> {
     if is_url(source) {
         let path = cached_path(source).context("no cache directory: HOME is not set")?;
         if !path.is_file() {
+            #[cfg(feature = "fetch")]
             bail!("{source} is not in the cache; run `memelint fetch` first");
+            #[cfg(not(feature = "fetch"))]
+            bail!(
+                "{source} is not in the cache; this memelint has no `fetch`, put its text at {}",
+                path.display()
+            );
         }
         return std::fs::read_to_string(&path)
             .with_context(|| format!("cannot read {}", path.display()));
@@ -384,12 +391,12 @@ mod tests {
         let allow = c.allowlist("python", &dir.join("memelint.toml")).unwrap();
         std::fs::remove_dir_all(&dir).unwrap();
         assert!(allow.allows("flanges"));
-        // A URL that is not in the cache is an error that names the command.
+        // A URL that is not in the cache is an error that gives the instruction.
         let c = config(r#"word-lists = ["https://nonexistent.invalid/w.txt"]"#);
         let err = c
             .allowlist("python", Path::new("memelint.toml"))
             .unwrap_err();
-        assert!(err.to_string().contains("memelint fetch"));
+        assert!(err.to_string().contains("is not in the cache"));
     }
 }
 

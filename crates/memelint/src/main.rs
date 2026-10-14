@@ -9,7 +9,7 @@ mod rules;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 /// Simplified Technical English (ASD-STE100) lint for code comments and prose.
@@ -39,6 +39,7 @@ enum Command {
         grammars: Option<PathBuf>,
     },
     /// Download the word lists that `memelint.toml` gives as URLs into the cache.
+    #[cfg(feature = "fetch")]
     Fetch {
         /// Project configuration.
         #[arg(long, default_value = config::CONFIG_FILE)]
@@ -55,6 +56,7 @@ fn main() -> Result<()> {
             config,
             grammars,
         } => run_check(paths, vocab, config, grammars),
+        #[cfg(feature = "fetch")]
         Command::Fetch { config } => run_fetch(config),
     }
 }
@@ -155,7 +157,9 @@ fn run_check(
     Ok(())
 }
 
+#[cfg(feature = "fetch")]
 fn run_fetch(config_path: PathBuf) -> Result<()> {
+    use anyhow::Context;
     let config = config::Config::load(&config_path)?;
     let urls = config.urls();
     if urls.is_empty() {

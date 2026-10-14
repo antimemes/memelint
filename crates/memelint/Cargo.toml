@@ -28,10 +28,10 @@ tree-sitter-typescript = { version = "0.23.2", optional = true }
 tree-sitter-nix = { version = "0.3", optional = true }
 tree-sitter-toml-ng = { version = "0.7", optional = true }
 tree-sitter-md = { version = "0.5", optional = true }
-ureq = { version = "3", default-features = false, features = ["rustls"] }
+ureq = { version = "3", default-features = false, features = ["rustls"], optional = true }
 
 [features]
-default = ["bundled"]
+default = ["bundled", "fetch"]
 # Grammars that are compiled into the binary. Thus `memelint check` operates
 # with no grammar directory. All other grammars load from a grammar directory
 # at run time. A package (for example in Nix) can set this feature off and
@@ -48,6 +48,10 @@ bundled = [
     "dep:tree-sitter-toml-ng",
     "dep:tree-sitter-typescript",
 ]
+# `memelint fetch`, which downloads the word lists that `memelint.toml` gives as
+# URLs. The TLS stack is a large part of the binary without grammars. Without
+# the feature, you put the text of a URL in the cache.
+fetch = ["dep:ureq"]
 
 [dev-dependencies]
 libtest-mimic = "0.8.2"
