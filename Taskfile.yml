@@ -1,0 +1,38 @@
+version: "3"
+
+tasks:
+  default:
+    cmd: task --list
+    silent: true
+
+  build:
+    desc: Build the checker and the importer into target/debug, which is on PATH
+    cmd: cargo build --workspace
+
+  test:
+    desc: Run the unit tests and the end-to-end cases
+    cmd: cargo test --workspace
+
+  lint:
+    desc: Run clippy with warnings as errors
+    cmd: cargo clippy --workspace --all-targets -- -D warnings
+
+  check:
+    desc: Check this repository with memelint
+    deps: [build]
+    cmd: memelint check
+
+  expect:
+    desc: Write the expected output of the end-to-end cases again, after a change
+    cmd: UPDATE_EXPECT=1 cargo test -p memelint --test cases
+
+  docs:
+    desc: Serve the documentation at http://localhost:3000
+    cmd: mdbook serve docs
+
+  ci:
+    desc: What CI runs, test, lint and check
+    cmds:
+      - task: test
+      - task: lint
+      - task: check

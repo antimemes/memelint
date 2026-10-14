@@ -122,7 +122,7 @@ Without flakes:
 nix-shell
 ```
 
-The shell has the toolchain, the PDF and all grammars, and `cargo build` puts `memelint` on PATH. `UPDATE_EXPECT=1 cargo test --test cases` writes the correct output of the end-to-end cases again after a change. `mdbook serve docs` shows the documentation.
+The shell has the toolchain, the PDF and all grammars. `task --list` shows the development commands.
 
 ## License
 

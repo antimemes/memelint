@@ -8,6 +8,7 @@ pkgs.mkShell {
     rustfmt
     rust-analyzer
     mdbook
+    go-task
   ];
 
   RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
