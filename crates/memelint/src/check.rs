@@ -23,17 +23,25 @@ pub struct Finding {
 
 /// Words that the project examined and accepted: technical names and verbs
 /// in the sense of the spec. They come from `memelint.toml`.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Allowlist(HashSet<String>);
 
 impl Allowlist {
+    /// Words with whitespace or line breaks between them. Text after `#` is
+    /// a comment.
+    #[cfg(test)]
     pub fn parse(text: &str) -> Self {
-        Self(
-            text.lines()
-                .map(|l| l.split('#').next().unwrap_or("").trim().to_lowercase())
-                .filter(|l| !l.is_empty())
-                .collect(),
-        )
+        let mut allow = Self::default();
+        allow.extend(text);
+        allow
+    }
+
+    pub fn extend(&mut self, text: &str) {
+        for line in text.lines() {
+            let line = line.split('#').next().unwrap_or("");
+            self.0
+                .extend(line.split_whitespace().map(str::to_lowercase));
+        }
     }
 
     /// The word, or a regular inflection of it: the plural, or the -s, -ed

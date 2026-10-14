@@ -1,3 +1,4 @@
+#:schema https://raw.githubusercontent.com/antimemes/memelint/main/crates/memelint/memelint.schema.json
 # memelint configuration. See README.md.
 
 # Technical names and verbs in the comments and documents of this
@@ -6,15 +7,15 @@
 words = [
   # this project
   "memelint", "memelint-common", "memelint-import", "allowlist", "checker",
-  "importer", "finding", "vocabulary", "rule", "worktree", "fixture",
+  "importer", "finding", "vocabulary", "rule", "worktree",
   "overlay",
   # programs and files
-  "acronym", "binary", "byte", "cache", "cargo", "column", "comment",
-  "config", "default", "diff", "directory", "docstring", "environment",
-  "file", "flag", "font", "glyph", "grammar", "identifier", "json", "library",
-  "line", "loader", "lookup", "markdown", "markup", "matrix", "offset",
-  "parser", "path", "pdf", "regex", "stderr", "stdout", "subcommand", "table",
-  "text", "token", "whitespace",
+  "acronym", "cargo", "comment",
+  "docstring",
+  "font", "glyph",
+  "line", "loader", "lookup", "matrix",
+  "pdf", "subcommand",
+  "text",
   # tools and projects
   "nix", "nixpkgs", "neovim", "helix", "tree-sitter", "abi", "xdg", "serde",
   "clap", "acrolinx", "congree", "hyperste",
@@ -26,26 +27,24 @@ words = [
   "pronoun", "prose", "sentence", "speech", "stem", "suffix", "tense", "verb",
   "word",
   # more names from the code and the spec
-  "unapproved", "technical", "spec", "issue", "lint", "summary", "parse",
-  "header", "footer", "cell", "qualifier", "project", "document", "section",
+  "unapproved", "technical", "spec", "issue", "summary",
+  "footer", "cell", "qualifier", "project", "document", "section",
   "vendor", "marker", "baseline", "character", "body", "status", "pos", "adj",
   "adv", "prep", "conj", "id", "geometry", "indentation", "x-coordinate",
   "upper-case", "lower-case", "mixed-case", "inflected", "descriptive",
   "procedural", "checkable", "heuristic", "judgment", "feasibility",
-  "argument", "tally", "paraphrase", "constructor", "field", "signature",
-  "filesystem", "extension",
+  "tally", "paraphrase", "field", "signature",
   # verbs and nouns of programs, in their technical sense
-  "build", "bundle", "compile", "debug", "export", "extract", "feature",
-  "inline", "join", "language", "list", "load", "map", "merge", "note",
-  "overflow", "padding", "page", "pointer", "print", "process", "program",
-  "return", "run", "sort", "split", "static", "state", "trailing", "unload",
-  "variable", "warning", "wrap", "case", "configuration", "end-to-end",
-  "fixture", "machine",
+  "extract", "feature",
+  "join", "language", "load", "note",
+  "padding", "page", "print", "program",
+  "run", "sort", "split", "static", "state", "trailing", "unload",
+  "wrap", "case", "end-to-end",
+  "machine",
   # more technical nouns
   "form", "letter", "simplified", "shared", "checkability", "parenthesis",
-  "scale", "geometric", "mean", "commit", "package", "context", "message",
-  "block", "command", "multi-word", "parentheses", "layout", "size", "hyphen",
-  "memory",
+  "scale", "geometric", "mean", "context", "message",
+  "multi-word", "parentheses", "layout", "size", "hyphen",
   # names of parts of the language, and the section names of the spec
   "writing", "practice", "punctuation", "semicolon", "colon", "hyphenate",
   "abbreviation", "title", "quote", "proper", "demonstrative", "singular",
@@ -53,14 +52,14 @@ words = [
   "style", "topic", "category", "synonym", "slang", "jargon", "regional",
   "spelling", "american", "british", "simple", "present", "past", "future",
   "perfect", "progressive", "construction", "auxiliary", "agent", "heading",
-  "link", "target", "fragment", "substitution", "repository", "organisation",
-  "tagger", "cue", "signal", "clarity", "exception", "key", "label",
+  "target", "fragment", "substitution", "organisation",
+  "tagger", "cue", "clarity", "label",
   "caution", "action", "consistent", "consistency", "particle",
   # more words from the README
-  "domain", "root", "syntax", "development", "workspace", "crate", "format",
+  "domain", "root", "development", "workspace", "crate",
   "commercial", "complex", "rust", "python", "java", "javascript",
-  "typescript", "quotation", "apostrophe", "toolchain", "usage", "wrapper",
-  "derivation", "flake", "tarball", "glob",
+  "typescript", "quotation", "apostrophe", "usage", "wrapper",
+  "derivation", "flake", "tarball", "glob", "software",
 ]
 
 # The fixture worktrees have prose that does not follow the rules, as a test.

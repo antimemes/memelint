@@ -28,6 +28,7 @@ tree-sitter-typescript = { version = "0.23.2", optional = true }
 tree-sitter-nix = { version = "0.3", optional = true }
 tree-sitter-toml-ng = { version = "0.7", optional = true }
 tree-sitter-md = { version = "0.5", optional = true }
+ureq = { version = "3", default-features = false, features = ["rustls"] }
 
 [features]
 default = ["bundled"]

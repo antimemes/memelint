@@ -1,13 +1,15 @@
 mod check;
 mod config;
+mod defaults;
 mod dict;
 mod extract;
 mod grammars;
 mod rules;
 
+use std::collections::HashMap;
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
 /// Simplified Technical English (ASD-STE100) lint for code comments and prose.
@@ -36,6 +38,12 @@ enum Command {
         #[arg(long)]
         grammars: Option<PathBuf>,
     },
+    /// Download the word lists that `memelint.toml` gives as URLs into the cache.
+    Fetch {
+        /// Project configuration.
+        #[arg(long, default_value = config::CONFIG_FILE)]
+        config: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -47,6 +55,7 @@ fn main() -> Result<()> {
             config,
             grammars,
         } => run_check(paths, vocab, config, grammars),
+        Command::Fetch { config } => run_fetch(config),
     }
 }
 
@@ -60,7 +69,8 @@ fn run_check(
         .map_err(anyhow::Error::msg)?;
     let dict = dict::Dictionary::load(&vocab_path)?;
     let config = config::Config::load(&config_path)?;
-    let allow = config.allowlist(&config_path)?;
+    // One allowlist for each language, made when its first file comes.
+    let mut allowlists: HashMap<String, check::Allowlist> = HashMap::new();
     let mut grammars = grammars::Grammars::new(grammar_dir.as_deref());
 
     let roots = if paths.is_empty() {
@@ -94,10 +104,15 @@ fn run_check(
             continue; // not UTF-8, thus not a source file
         };
         files += 1;
+        if !allowlists.contains_key(&grammar.name) {
+            let allow = config.allowlist(&grammar.name, &config_path)?;
+            allowlists.insert(grammar.name.clone(), allow);
+        }
+        let allow = &allowlists[&grammar.name];
         let shown = path.strip_prefix("./").unwrap_or(path).display();
         for comment in extract::extract(&grammar, &source) {
             comments += 1;
-            for f in check::check(&comment, &dict, &allow) {
+            for f in check::check(&comment, &dict, allow) {
                 findings += 1;
                 println!(
                     "{shown}:{}:{}: {} [STE {}]",
@@ -126,6 +141,30 @@ fn run_check(
     }
     if findings > 0 {
         std::process::exit(1);
+    }
+    Ok(())
+}
+
+fn run_fetch(config_path: PathBuf) -> Result<()> {
+    let config = config::Config::load(&config_path)?;
+    let urls = config.urls();
+    if urls.is_empty() {
+        eprintln!("no URLs in {}", config_path.display());
+        return Ok(());
+    }
+    for url in urls {
+        let path = config::cached_path(url).context("no cache directory: HOME is not set")?;
+        let text = ureq::get(url)
+            .call()
+            .with_context(|| format!("cannot fetch {url}"))?
+            .body_mut()
+            .read_to_string()
+            .with_context(|| format!("cannot read {url}"))?;
+        if let Some(dir) = path.parent() {
+            std::fs::create_dir_all(dir)?;
+        }
+        std::fs::write(&path, &text).with_context(|| format!("cannot write {}", path.display()))?;
+        eprintln!("{url} -> {}", path.display());
     }
     Ok(())
 }

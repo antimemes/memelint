@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/antimemes/memelint/main/crates/memelint/memelint.schema.json",
+  "title": "memelint.toml",
+  "description": "The memelint project configuration, at the project root.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "words": { "$ref": "#/$defs/words" },
+    "word-lists": { "$ref": "#/$defs/word-lists" },
+    "default-word-lists": {
+      "description": "Use the bundled word lists: the software list for all files, and the list of each language for its files. Default: true.",
+      "type": "boolean"
+    },
+    "ignore": {
+      "description": "Paths that are not examined, in the syntax of .gitignore.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "languages": {
+      "description": "Words for the files of one language, by tree-sitter grammar name.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "words": { "$ref": "#/$defs/words" },
+          "word-lists": { "$ref": "#/$defs/word-lists" },
+          "default-word-lists": {
+            "description": "Use the bundled list of this language for its files. Default: the top-level value.",
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "words": {
+      "description": "Technical names and verbs that the project accepts.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "word-lists": {
+      "description": "Word lists that add to the bundled lists. An entry is a path (from the directory of memelint.toml), a URL (that `memelint fetch` puts in the cache), or the name of a bundled list. A list has one word on each line, with # comments.",
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

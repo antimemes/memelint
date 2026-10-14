@@ -1,0 +1,10 @@
+table
+key
+value
+array
+inline
+string
+integer
+float
+boolean
+datetime

@@ -93,17 +93,19 @@ memelint lints all languages that have a [tree-sitter grammar](https://tree-sitt
 
 ## Your words
 
-Technical names from your domain are not in the dictionary. Put the names that you accept in `memelint.toml` at the project root, and examine that file as you examine code:
+Technical names from your domain are not in the dictionary. memelint has lists of the technical names of software and of each language, and uses them unless you set `default-word-lists = false`. Put the names of your project in `memelint.toml` at the project root, and examine that file as you examine code:
 
 ```toml
-# part names
 words = ["gantry", "sprocket"]
+word-lists = ["words.txt", "https://example.com/team-words.txt"]
 
-# paths that are not examined, in the syntax of .gitignore
-ignore = ["vendor/"]
+[languages.rust]              # for the files of one language
+words = ["monomorphize"]
 ```
 
-A long list can go in a different file, one word on each line, with `words-file = "words.txt"`.
+A word list has one word on each line. `memelint fetch` downloads the URLs into the cache. The bundled lists are in `crates/memelint/words/`.
+
+A long list can go in a different file with `words-file = "words.txt"`. Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`.
 
 ## The dictionary
 

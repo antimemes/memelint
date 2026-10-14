@@ -26,6 +26,8 @@ const DATA_EXTENSIONS: &[&str] = &[
 /// A grammar, and how to read the files it parses.
 #[derive(Clone)]
 pub struct Grammar {
+    /// The grammar name, for example `rust`.
+    pub name: String,
     pub language: Language,
     /// The document is prose (Markdown): lint its paragraphs, not its comments.
     pub prose: bool,
@@ -109,6 +111,7 @@ impl Grammars {
         let grammar = bundled(&name)
             .or_else(|| self.load(&name))
             .map(|language| Grammar {
+                name: name.clone(),
                 language,
                 prose: name == "markdown",
             });

@@ -1,0 +1,9 @@
+heading
+link
+fence
+inline
+emphasis
+blockquote
+footnote
+anchor
+badge

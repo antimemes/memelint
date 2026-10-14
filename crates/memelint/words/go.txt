@@ -1,0 +1,14 @@
+goroutine
+channel
+slice
+struct
+interface
+package
+module
+pointer
+defer
+panic
+rune
+gofmt
+vet
+embed
