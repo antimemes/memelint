@@ -36,8 +36,8 @@ ASD-STE100 Issue 9 has 53 rules. A program can check a part of them. memelint ch
 | Rule | Finding |
 |---|---|
 | 1.1 | a word that is not approved, with the approved alternatives, for example `commence` (use `start`) |
-| 1.2 | an approved word in a part of speech in which it is not approved, for example `test` is a noun, thus "do a test" and not "test it" |
-| 1.6 | a word that is not in the dictionary and not in your word list, for example `kubelet`. Each project has its own names; put them in `memelint.toml` to approve them |
+| 1.2 | an approved word in a part of speech in which it is not approved. For example, `test` is a noun, thus "do a test" and not "test it" |
+| 1.6 | a word that is not in the dictionary and not in your word list, for example `kubelet`. Put the words of your project in `memelint.toml`, and they are approved |
 | 3.5 | the `-ing` form of an approved verb, for example `starting` |
 | 4.2 | a contraction, for example `don't` |
 | 6.3 | a sentence of more than 25 words |
