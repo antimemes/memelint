@@ -1,6 +1,6 @@
 # memelint
 
-memelint lints the words that spread through comments, docstrings, and documentation. It tells you which words and sentences do not follow Simplified Technical English (ASD-STE100), with an allowlist for the words of your project.
+memelint lints the memes of a project: the words that spread through comments, docstrings, and documentation. It tells you which words and sentences do not follow Simplified Technical English (ASD-STE100), with an allowlist for the words of your project.
 
 Each finding gives the file, the position, the severity, the message and the rule:
 
