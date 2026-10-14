@@ -23,12 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: NixOS/nix-installer-action@v1
-      # Keeps the Nix store between runs, so mdbook is not built again.
       - uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock', 'Cargo.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-
-          gc-max-store-size-linux: 1G
+          gc-max-store-size-linux: 2G
           purge: true
           purge-prefixes: nix-${{ runner.os }}-
           purge-created: 0
