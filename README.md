@@ -72,7 +72,7 @@ words = ["monomorphize"]
 
 A word list has one word on each line. `memelint fetch` downloads the URLs into the cache. [The word lists](crates/memelint/words/) are not complete. If you add words, send a pull request.
 
-Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`. The [documentation](docs/src/configuration.md) has each key.
+Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`. The [documentation](https://memelint.antimemetics.institute/) has each key.
 
 ## The dictionary
 

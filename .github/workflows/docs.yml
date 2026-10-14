@@ -1,0 +1,49 @@
+# Builds the mdBook with Nix and publishes it to GitHub Pages.
+# Pages must be set to "GitHub Actions" as the source in the repository settings.
+name: docs
+
+on:
+  push:
+    branches: [main]
+    paths: [docs/**, nix/**, flake.*, .github/workflows/docs.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: NixOS/nix-installer-action@v1
+      # Keeps the Nix store between runs, so mdbook is not built again.
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', 'flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 1G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
+      - run: nix build .#docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: result
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
