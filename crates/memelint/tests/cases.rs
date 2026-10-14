@@ -159,24 +159,26 @@ fn copy_tree(from: &Path, to: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-/// The example output in the README is the output of the `readme` case.
+/// The example output in the README and in the documentation is the output of the
+/// `readme` case.
 fn readme_example(tests: &Path) -> Result<(), Failed> {
-    let readme = fs::read_to_string(tests.join("../../../README.md"))?;
-    let start = readme
-        .find("```console\n$ memelint check\n")
-        .ok_or("no `memelint check` example in the README")?;
-    let block = &readme[start + "```console\n$ memelint check\n".len()..];
-    let block = &block[..block.find("```").ok_or("example block has no end")?];
-
     let expected = fs::read_to_string(tests.join("cases/readme/expected.txt"))?;
     let findings: Vec<&str> = expected.lines().filter(|l| l.contains("[STE ")).collect();
-    let shown: Vec<&str> = block.lines().collect();
-    if shown != findings {
-        return Err(format!(
-            "README example differs from tests/cases/readme/expected.txt:\n{}",
-            diff(&findings.join("\n"), &shown.join("\n"))
-        )
-        .into());
+    for document in ["README.md", "docs/src/introduction.md"] {
+        let text = fs::read_to_string(tests.join("../../..").join(document))?;
+        let start = text
+            .find("```console\n$ memelint check\n")
+            .ok_or(format!("no `memelint check` example in {document}"))?;
+        let block = &text[start + "```console\n$ memelint check\n".len()..];
+        let block = &block[..block.find("```").ok_or("example block has no end")?];
+        let shown: Vec<&str> = block.lines().collect();
+        if shown != findings {
+            return Err(format!(
+                "{document} example differs from tests/cases/readme/expected.txt:\n{}",
+                diff(&findings.join("\n"), &shown.join("\n"))
+            )
+            .into());
+        }
     }
     Ok(())
 }
