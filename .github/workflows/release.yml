@@ -16,7 +16,7 @@ jobs:
         include:
           - { target: x86_64-unknown-linux-musl, runner: ubuntu-latest }
           - { target: aarch64-unknown-linux-musl, runner: ubuntu-24.04-arm }
-          - { target: x86_64-apple-darwin, runner: macos-15-intel }
+          - { target: x86_64-apple-darwin, runner: macos-latest }
           - { target: aarch64-apple-darwin, runner: macos-latest }
     runs-on: ${{ matrix.runner }}
     steps:
@@ -24,6 +24,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+      # The Intel macOS binary is cross-compiled on the Apple Silicon runner.
       # The bundled grammars are C. On Linux they are compiled for musl, so
       # that the binary has no libc dependency.
       - if: runner.os == 'Linux'
