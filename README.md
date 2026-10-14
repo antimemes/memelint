@@ -18,7 +18,7 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 The release binaries are for Linux and macOS, on x86_64 and aarch64:
 
 ```bash
-curl -fsSL https://memelint.antimemetics.institute/install.sh | sh
+curl -fsSL https://memelint.sh | sh
 memelint check
 ```
 

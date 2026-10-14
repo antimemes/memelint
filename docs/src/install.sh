@@ -1,5 +1,7 @@
 #!/bin/sh
 # Installs the memelint release binaries into ~/.local/bin, or $MEMELINT_INSTALL_DIR.
+#
+#   curl -fsSL https://memelint.sh | sh
 set -eu
 
 case "$(uname -m)" in x86_64) arch=x86_64 ;; arm64 | aarch64) arch=aarch64 ;; esac

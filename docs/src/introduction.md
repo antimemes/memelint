@@ -28,7 +28,7 @@ Use the install script, or use Nix.
 The release binaries are for Linux and macOS, on x86_64 and aarch64:
 
 ```bash
-curl -fsSL https://memelint.antimemetics.institute/install.sh | sh
+curl -fsSL https://memelint.sh | sh
 memelint check
 ```
 
