@@ -18,7 +18,9 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 [Nix](https://nixos.org/download/) is necessary. This builds the checker with the ASD-STE100 vocabulary and with each tree-sitter grammar that nixpkgs has, and runs it:
 
 ```bash
-$(nix-build --no-out-link https://github.com/antimemes/memelint/archive/main.tar.gz)/bin/memelint check
+$(nix-build --no-out-link \
+  https://github.com/antimemes/memelint/archive/main.tar.gz)\
+/bin/memelint check
 ```
 
 With flakes:
