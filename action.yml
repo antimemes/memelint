@@ -1,0 +1,45 @@
+name: memelint
+description: Lint code comments and prose against ASD-STE100 (Simplified Technical English).
+branding:
+  icon: check-square
+  color: blue
+
+inputs:
+  version:
+    description: The memelint release, for example v0.1.0. Default is the newest release.
+    default: latest
+  args:
+    description: The arguments for memelint.
+    default: check
+
+runs:
+  using: composite
+  steps:
+    - id: install
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: |
+        case "$RUNNER_OS-$RUNNER_ARCH" in
+          Linux-X64) target=x86_64-unknown-linux-musl ;;
+          Linux-ARM64) target=aarch64-unknown-linux-musl ;;
+          macOS-X64) target=x86_64-apple-darwin ;;
+          macOS-ARM64) target=aarch64-apple-darwin ;;
+          *) echo "there is no memelint release for $RUNNER_OS $RUNNER_ARCH"; exit 1 ;;
+        esac
+        if [ "$VERSION" = latest ]; then path="latest/download"; else path="download/$VERSION"; fi
+        mkdir -p "$RUNNER_TEMP/memelint"
+        curl -fsSL "https://github.com/antimemes/memelint/releases/$path/memelint-$target.tar.gz" \
+          | tar -xz -C "$RUNNER_TEMP/memelint"
+        echo "$RUNNER_TEMP/memelint" >> "$GITHUB_PATH"
+        echo "version=$("$RUNNER_TEMP/memelint/memelint" --version)" >> "$GITHUB_OUTPUT"
+    # The vocabulary is made from the ASD-STE100 PDF on the first run. It is
+    # kept for the runs with the same memelint version.
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/memelint
+        key: ${{ steps.install.outputs.version }}-${{ runner.os }}
+    - shell: bash
+      run: |
+        echo "::add-matcher::${{ github.action_path }}/.github/memelint-matcher.json"
+        memelint ${{ inputs.args }}

@@ -2,12 +2,6 @@
 
 memelint is a lint for Simplified Technical English (ASD-STE100). It reads the comments and docstrings in source files, and Markdown files as prose. It tells you which words and sentences do not follow the standard.
 
-Run it at the root of a project. [Nix](https://nixos.org/download/) is necessary:
-
-```bash
-nix run github:antimemes/memelint -- check
-```
-
 Each finding gives the file, the position, the severity, the message and the rule:
 
 ```console
@@ -21,4 +15,55 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 The exit code is 1 when there is an error.
 
-ASD-STE100 has copyright, thus the binary does not contain its dictionary. The Nix package makes the vocabulary from the PDF on your machine.
+## Installing
+
+ASD-STE100 is copyrighted, thus the binary does not contain its dictionary. The first run downloads the PDF from ASD and makes the vocabulary in `~/.cache/memelint/`. The Nix package makes it when it builds.
+
+### On your machine
+
+Use the install script, or use Nix.
+
+#### The install script
+
+The release binaries are for Linux and macOS, on x86_64 and aarch64:
+
+```bash
+curl -fsSL https://memelint.antimemetics.institute/install.sh | sh
+memelint check
+```
+
+#### Nix
+
+With [Nix](https://nixos.org/download/), there is no installation. This builds the checker with the vocabulary and with each tree-sitter grammar that nixpkgs has, and runs it:
+
+```bash
+$(nix-build --no-out-link \
+  https://github.com/antimemes/memelint/archive/main.tar.gz)\
+/bin/memelint check
+```
+
+With flakes:
+
+```bash
+nix run github:antimemes/memelint -- check
+```
+
+### In GitHub Actions
+
+Put this in `.github/workflows/memelint.yml`. The findings become annotations on the pull request:
+
+```yaml
+name: memelint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: antimemes/memelint@latest
+```

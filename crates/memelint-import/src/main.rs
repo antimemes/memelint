@@ -1,3 +1,4 @@
+mod download;
 mod ste100;
 
 use std::path::PathBuf;
@@ -7,7 +8,7 @@ use clap::{Parser, Subcommand};
 
 /// Build a memelint vocabulary file from the document of a standard.
 ///
-/// The documents are free to download but they have copyright. Thus the
+/// The documents are free to download but they are copyrighted. Thus the
 /// file that this tool writes stays on this machine. It goes to the memelint
 /// cache directory, and you must not commit it or send it to other persons.
 #[derive(Parser)]
@@ -21,9 +22,10 @@ struct Cli {
 enum Command {
     /// ASD-STE100 (Simplified Technical English), from the PDF that ASD supplies.
     AsdSte100 {
-        /// Path to the ASD-STE100 PDF (default: $STE100_PDF).
+        /// Path to the ASD-STE100 PDF (default: $STE100_PDF). Without it, the
+        /// PDF is downloaded from asd-ste100.org into the memelint cache.
         #[arg(long, env = "STE100_PDF")]
-        pdf: PathBuf,
+        pdf: Option<PathBuf>,
         /// Where to write the vocabulary (default: the memelint cache).
         #[arg(short, long)]
         out: Option<PathBuf>,
@@ -44,6 +46,10 @@ enum Command {
 fn main() -> Result<()> {
     match Cli::parse().command {
         Command::AsdSte100 { pdf, out, quiet } => {
+            let pdf = match pdf {
+                Some(p) => p,
+                None => download::asd_ste100()?,
+            };
             let out = match out {
                 Some(p) => p,
                 None => memelint_common::default_path(memelint_common::ASD_STE100)

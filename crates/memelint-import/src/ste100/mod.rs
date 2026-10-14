@@ -51,7 +51,7 @@ pub fn import(path: &Path, warn: &mut dyn FnMut(String)) -> Result<Vocabulary> {
     })
 }
 
-fn sha256_hex(bytes: &[u8]) -> String {
+pub fn sha256_hex(bytes: &[u8]) -> String {
     use sha2::{Digest, Sha256};
     let digest = Sha256::digest(bytes);
     digest.iter().map(|b| format!("{b:02x}")).collect()

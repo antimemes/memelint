@@ -1,0 +1,54 @@
+# Builds the binaries for Linux and macOS, on x86_64 and aarch64, and makes a
+# GitHub release from a tag. The install script and the action download these.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-musl, runner: ubuntu-latest }
+          - { target: aarch64-unknown-linux-musl, runner: ubuntu-24.04-arm }
+          - { target: x86_64-apple-darwin, runner: macos-15-intel }
+          - { target: aarch64-apple-darwin, runner: macos-latest }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      # The bundled grammars are C. On Linux they are compiled for musl, so
+      # that the binary has no libc dependency.
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update && sudo apt-get install -y musl-tools
+          echo "TARGET_CC=musl-gcc" >> "$GITHUB_ENV"
+      - run: cargo build --release --locked --target ${{ matrix.target }} -p memelint -p memelint-import
+      - run: tar -C target/${{ matrix.target }}/release -czf memelint-${{ matrix.target }}.tar.gz memelint memelint-import
+      - uses: actions/upload-artifact@v4
+        with:
+          name: memelint-${{ matrix.target }}
+          path: memelint-${{ matrix.target }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - run: sha256sum *.tar.gz > SHA256SUMS
+      - run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes *.tar.gz SHA256SUMS
+        env:
+          GH_TOKEN: ${{ github.token }}
+      # `uses: antimemes/memelint@latest` in a workflow gets the action of the
+      # newest release.
+      - uses: actions/checkout@v4
+      - run: git tag -f latest && git push -f origin latest

@@ -9,7 +9,7 @@ mod rules;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 
 /// Simplified Technical English (ASD-STE100) lint for code comments and prose.
@@ -67,8 +67,10 @@ fn run_check(
     config_path: PathBuf,
     grammar_dir: Option<PathBuf>,
 ) -> Result<()> {
-    let vocab_path = memelint_common::locate(vocab.as_deref(), memelint_common::ASD_STE100)
-        .map_err(anyhow::Error::msg)?;
+    let vocab_path = match memelint_common::locate(vocab.as_deref(), memelint_common::ASD_STE100) {
+        Ok(path) => path,
+        Err(why) => make_vocabulary().context(why)?,
+    };
     let dict = dict::Dictionary::load(&vocab_path)?;
     let config = config::Config::load(&config_path)?;
     // One allowlist for each language, made when its first file comes.
@@ -159,7 +161,6 @@ fn run_check(
 
 #[cfg(feature = "fetch")]
 fn run_fetch(config_path: PathBuf) -> Result<()> {
-    use anyhow::Context;
     let config = config::Config::load(&config_path)?;
     let urls = config.urls();
     if urls.is_empty() {
@@ -181,4 +182,25 @@ fn run_fetch(config_path: PathBuf) -> Result<()> {
         eprintln!("{url} -> {}", path.display());
     }
     Ok(())
+}
+
+/// Makes the ASD-STE100 vocabulary with `memelint-import`, which is adjacent to
+/// this binary or on PATH. The importer downloads the PDF and writes the
+/// vocabulary into the cache. Thus the first run on a machine makes it.
+fn make_vocabulary() -> Result<PathBuf> {
+    let importer = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(|dir| dir.join("memelint-import")))
+        .map(|p| p.with_extension(std::env::consts::EXE_EXTENSION))
+        .filter(|p| p.is_file())
+        .unwrap_or_else(|| PathBuf::from("memelint-import"));
+    eprintln!("note: no ASD-STE100 vocabulary in the cache; memelint-import makes it");
+    let status = std::process::Command::new(&importer)
+        .args([memelint_common::ASD_STE100, "--quiet"])
+        .status()
+        .with_context(|| format!("cannot run {}", importer.display()))?;
+    if !status.success() {
+        anyhow::bail!("{} failed ({status})", importer.display());
+    }
+    memelint_common::locate(None, memelint_common::ASD_STE100).map_err(anyhow::Error::msg)
 }
