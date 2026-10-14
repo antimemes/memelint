@@ -101,20 +101,29 @@ A word list has one word on each line. `memelint fetch` downloads the URLs into 
 
 Paths in `ignore = ["vendor/"]` are not examined, with the syntax of `.gitignore`. The [documentation](https://memelint.antimemetics.institute/) has each key.
 
-## The dictionary
-
-ASD-STE100 is free to download, but it is copyrighted. Thus the memelint binary does not contain the dictionary. The first run downloads the PDF from ASD and makes the vocabulary in `~/.cache/memelint/`, which is not in your projects. The Nix package makes it when it builds. To make it from a PDF that you have:
-
-```bash
-memelint-import asd-ste100 --pdf ASD-STE100_ISSUE9.pdf
-```
-
-`--vocab` or `MEMELINT_VOCAB` point the checker to a different file.
-
 ## Development
 
-`nix develop` gives you the toolchain, the PDF and all grammars. The workspace has 3 crates: `memelint` (the checker), `memelint-import` (the importer) and `memelint-common` (the vocabulary file and its location). The end-to-end tests in `crates/memelint/tests/cases/` compare the output of `memelint check` on fixture worktrees with `expected.txt`. `UPDATE_EXPECT=1 cargo test --test cases` writes the correct output again after a change. The documentation is an mdBook in `docs/`: `mdbook serve docs`.
+With Nix and direnv:
+
+```bash
+cp .envrc.template .envrc
+direnv allow
+```
+
+Without direnv:
+
+```bash
+nix develop
+```
+
+Without flakes:
+
+```bash
+nix-shell
+```
+
+The shell has the toolchain, the PDF and all grammars, and `cargo build` puts `memelint` on PATH. `UPDATE_EXPECT=1 cargo test --test cases` writes the correct output of the end-to-end cases again after a change. `mdbook serve docs` shows the documentation.
 
 ## License
 
-MIT or Apache-2.0, as you select. This applies to the code, the tests and this document, and not to the vocabulary file, which comes from a document of ASD.
+MIT or Apache-2.0, as you select. This applies to the code, the tests and this document. It does not apply to the vocabulary file, which comes from a document of ASD that we do not supply.

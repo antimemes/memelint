@@ -61,6 +61,7 @@ words = [
   "typescript", "quotation", "apostrophe", "usage", "wrapper",
   "derivation", "flake", "tarball", "glob", "software",
   "severity", "strict", "profile", "documentation", "editor", "curl", "sh", "linux", "macos",
+  "direnv",
 ]
 
 # The fixture worktrees have prose that does not follow the rules, as a test.
