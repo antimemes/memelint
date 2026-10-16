@@ -8,7 +8,7 @@ mod grammars;
 mod rules;
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
@@ -87,8 +87,6 @@ fn run_check(
     };
     let dict = dict::Dictionary::load(&vocab_path)?;
     let config = config::Config::load(&config_path)?;
-    // One allowlist for each language, made when its first file comes.
-    let mut allowlists: HashMap<String, check::Allowlist> = HashMap::new();
     let mut grammars = grammars::Grammars::new(grammar_dir.as_deref());
 
     let roots = if paths.is_empty() {
@@ -96,23 +94,20 @@ fn run_check(
     } else {
         paths
     };
-    let mut walk = ignore::WalkBuilder::new(&roots[0]);
-    // A glob with `!` at the start is ignored. A glob without it is accepted.
-    let mut overrides = ignore::overrides::OverrideBuilder::new(".");
-    for glob in &config.ignore {
-        overrides.add(&format!("!{glob}"))?;
-    }
-    walk.overrides(overrides.build()?);
-    walk.sort_by_file_path(Ord::cmp); // the same sequence on each filesystem
-    for root in &roots[1..] {
-        walk.add(root);
-    }
+    let config_dir = config_path
+        .parent()
+        .filter(|d| !d.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let subtree = subtree_word_lists(&config, config_dir)?;
+    // One allowlist for each language and each set of word lists from
+    // `subtree-word-lists`, made when its first file comes.
+    let mut allowlists: HashMap<(String, Vec<usize>), check::Allowlist> = HashMap::new();
 
     let (mut files, mut comments, mut errors, mut warnings) = (0usize, 0usize, 0usize, 0usize);
     let (mut fixed, mut fixed_files) = (0usize, 0usize);
     // Findings with a fix that was not applied: safe fixes, and unsafe fixes.
     let (mut safe_left, mut unsafe_left) = (0usize, 0usize);
-    for entry in walk.build() {
+    for entry in walker(&roots, &config)?.build() {
         let entry = entry?;
         let path = entry.path();
         if !entry.file_type().is_some_and(|t| t.is_file()) {
@@ -131,11 +126,22 @@ fn run_check(
             continue; // not UTF-8, thus not a source file
         };
         files += 1;
-        if !allowlists.contains_key(&grammar.name) {
-            let allow = config.allowlist(&grammar.name, &config_path)?;
-            allowlists.insert(grammar.name.clone(), allow);
+        // The word lists of `subtree-word-lists` above this file.
+        let lists: Vec<usize> = subtree
+            .iter()
+            .enumerate()
+            .filter(|(_, (dir, _))| relative(path).starts_with(dir))
+            .map(|(i, _)| i)
+            .collect();
+        let key = (grammar.name.clone(), lists);
+        if !allowlists.contains_key(&key) {
+            let mut allow = config.allowlist(&grammar.name, &config_path)?;
+            for &i in &key.1 {
+                allow.extend(&subtree[i].1);
+            }
+            allowlists.insert(key.clone(), allow);
         }
-        let allow = &allowlists[&grammar.name];
+        let allow = &allowlists[&key];
         let shown = path.strip_prefix("./").unwrap_or(path).display();
 
         let (mut n, mut findings) = lint(&grammar, &source, &dict, allow, &config);
@@ -214,6 +220,60 @@ fn run_check(
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// The files to examine: the files below `roots` that are not ignored, in
+/// the same sequence on each filesystem.
+fn walker(roots: &[PathBuf], config: &config::Config) -> Result<ignore::WalkBuilder> {
+    let mut walk = ignore::WalkBuilder::new(&roots[0]);
+    // A glob with `!` at the start is ignored. A glob without it is accepted.
+    let mut overrides = ignore::overrides::OverrideBuilder::new(".");
+    for glob in &config.ignore {
+        overrides.add(&format!("!{glob}"))?;
+    }
+    walk.overrides(overrides.build()?);
+    walk.sort_by_file_path(Ord::cmp);
+    for root in &roots[1..] {
+        walk.add(root);
+    }
+    Ok(walk)
+}
+
+/// A path without the `./` at its start, to compare it with other paths.
+fn relative(path: &Path) -> &Path {
+    path.strip_prefix(".").unwrap_or(path)
+}
+
+/// The word lists that `subtree-word-lists` names, with the directory of
+/// each. All directories below the configuration file are examined, because
+/// a list can be above the paths given on the command line.
+fn subtree_word_lists(
+    config: &config::Config,
+    config_dir: &Path,
+) -> Result<Vec<(PathBuf, String)>> {
+    if config.subtree_word_lists.is_empty() {
+        return Ok(Vec::new());
+    }
+    let globs = config.subtree_globs()?;
+    let mut lists = Vec::new();
+    for entry in walker(&[config_dir.to_path_buf()], config)?.build() {
+        let entry = entry?;
+        if !entry.file_type().is_some_and(|t| t.is_file()) {
+            continue;
+        }
+        let path = relative(entry.path());
+        let Ok(in_tree) = path.strip_prefix(relative(config_dir)) else {
+            continue;
+        };
+        if !globs.is_match(in_tree) {
+            continue;
+        }
+        let text = std::fs::read_to_string(entry.path())
+            .with_context(|| format!("cannot read {}", entry.path().display()))?;
+        let dir = path.parent().unwrap_or(Path::new("")).to_path_buf();
+        lists.push((dir, text));
+    }
+    Ok(lists)
 }
 
 /// How many findings `--fix` can remove, and `--fix --unsafe-fixes`.

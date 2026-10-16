@@ -14,6 +14,11 @@
     "rules": { "$ref": "#/$defs/rules" },
     "words": { "$ref": "#/$defs/words" },
     "word-lists": { "$ref": "#/$defs/word-lists" },
+    "subtree-word-lists": {
+      "description": "Globs of word-list files. Each file applies to the directory it is in and to everything below it.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
     "default-word-lists": {
       "description": "Use the bundled word lists: the software list for all files, and the list of each language for its files. Default: true.",
       "type": "boolean"

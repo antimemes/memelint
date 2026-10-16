@@ -8,6 +8,7 @@ memelint reads `memelint.toml` at the project root. Each key is optional. The fi
 profile = "strict"                 # "strict" or "basic"
 words = ["gantry", "sprocket"]
 word-lists = ["words.txt", "https://example.com/team-words.txt"]
+subtree-word-lists = ["experiments/*/memelint-words.txt"]
 default-word-lists = true
 ignore = ["vendor/", "*.generated.go"]
 
@@ -30,6 +31,7 @@ default-word-lists = true
 | `rules` | the severity of one rule |
 | `words` | the technical names and verbs of the project, see [Words](words.md) |
 | `word-lists` | files, URLs and bundled lists of words |
+| `subtree-word-lists` | globs of word files, each for the directory of the file and all directories below it, see [Words](words.md) |
 | `default-word-lists` | use the bundled lists (default: `true`) |
 | `ignore` | paths that memelint does not examine, in the syntax of `.gitignore` |
 | `languages.<name>` | the same keys for the files of one language, see [Languages](languages.md) |

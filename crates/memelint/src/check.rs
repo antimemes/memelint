@@ -36,7 +36,7 @@ pub struct Fix {
 
 /// Words that the project examined and accepted: technical names and verbs
 /// in the sense of the spec. They come from `memelint.toml`.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Allowlist(HashSet<String>);
 
 impl Allowlist {

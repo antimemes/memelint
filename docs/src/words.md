@@ -18,3 +18,22 @@ To use only your lists:
 default-word-lists = false
 word-lists = ["words.txt"]
 ```
+
+## Words of one directory
+
+In a repository with many packages, each directory can have its words. Name the files with a glob:
+
+```toml
+subtree-word-lists = ["experiments/*/memelint-words.txt"]
+```
+
+An example file, `experiments/rotor-sim/memelint-words.txt`:
+
+```text
+# words of the rotor simulation
+flywheel
+torque-ramp
+swashplate
+```
+
+The words of a file apply to the directory of the file and to all directories below it. A glob with `*` or `**` can find no file, and that is not an error. A path without `*` or `**` must be a file, as with `word-lists`. A path that ends with `/` is an error: the key names files, not directories. You select the file name: memelint has no default name, and it reads only the files you name.

@@ -1,0 +1,3 @@
+# A list above the path given on the command line applies.
+worktree = "subtree"
+args = ["parts/a/deep"]

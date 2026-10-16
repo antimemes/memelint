@@ -611,6 +611,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
+ "globset",
  "ignore",
  "libloading",
  "libtest-mimic",

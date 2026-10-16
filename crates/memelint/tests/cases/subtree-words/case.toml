@@ -1,0 +1,3 @@
+# A word list applies to its directory and to the directories below it,
+# and not to the other parts.
+worktree = "subtree"

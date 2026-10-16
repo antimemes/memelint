@@ -4,6 +4,7 @@
 //! profile = "strict"                           # or "basic"
 //! words = ["gantry", "sprocket"]               # for all files
 //! word-lists = ["words.txt", "https://example.com/team-words.txt"]
+//! subtree-word-lists = ["experiments/*/memelint-words.txt"]
 //! default-word-lists = true                    # the bundled lists
 //! ignore = ["vendor/", "*.generated.go"]
 //!
@@ -26,6 +27,10 @@
 //! The entries add to the bundled lists, unless `default-word-lists` is
 //! not set. A URL is read from the cache that `memelint fetch` fills.
 //!
+//! An entry of `subtree-word-lists` names word-list files, with `*` and `**`
+//! as in `.gitignore`. Each file applies to the directory it is in and to all
+//! files below it.
+//!
 //! The profile gives each rule a severity. `[rules]` changes it for one
 //! rule, and `[languages.<name>.rules]` for one rule in one language.
 //! `strict` makes each finding an error. `basic` makes unknown words (1.6)
@@ -35,6 +40,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use serde::Deserialize;
 
 use crate::check::Allowlist;
@@ -73,6 +79,10 @@ pub struct Config {
     /// Word lists for all files: paths, URLs, or names of bundled lists.
     #[serde(default)]
     pub word_lists: Vec<String>,
+    /// Word-list files, by name with `*` and `**`. Each file applies to the
+    /// directory it is in and to all files below it.
+    #[serde(default)]
+    pub subtree_word_lists: Vec<String>,
     /// Use the bundled software list for all files, and the bundled list of
     /// each language for its files.
     #[serde(default = "yes")]
@@ -131,7 +141,36 @@ impl Config {
         for id in config.rules.keys().chain(language_rules) {
             check_rule_id(id)?;
         }
+        let dir = path.parent().unwrap_or(Path::new("."));
+        for entry in &config.subtree_word_lists {
+            if entry.ends_with('/') {
+                bail!("`subtree-word-lists`: `{entry}` must name a file, not a directory");
+            }
+            // A name with `*`, `?`, `[` or `{` can give no file. A name
+            // without them must be a file.
+            if is_literal_pattern(entry) && !dir.join(entry).is_file() {
+                bail!("`subtree-word-lists`: `{entry}` is not a file");
+            }
+        }
+        config.subtree_globs()?;
         Ok(config)
+    }
+
+    /// The entries of `subtree-word-lists` as one `GlobSet`. `*` stops at
+    /// `/`; `**` does not.
+    pub fn subtree_globs(&self) -> Result<GlobSet> {
+        let mut set = GlobSetBuilder::new();
+        for entry in &self.subtree_word_lists {
+            let glob = GlobBuilder::new(entry)
+                .literal_separator(true)
+                .build()
+                .with_context(|| {
+                    format!("`subtree-word-lists`: `{entry}` is not a valid pattern")
+                })?;
+            set.add(glob);
+        }
+        set.build()
+            .context("`subtree-word-lists`: the patterns do not compile")
     }
 
     /// The severity of a rule in files of `language`: from the rules of the
@@ -227,6 +266,11 @@ pub fn is_url(source: &str) -> bool {
     source.starts_with("https://") || source.starts_with("http://")
 }
 
+/// Does `s` name one file? It does if it has none of `*`, `?`, `[` and `{`.
+pub fn is_literal_pattern(s: &str) -> bool {
+    !s.contains(['*', '?', '[', '{'])
+}
+
 /// Where the text of a URL is kept: `<cache>/words/<hash of the url>.txt`.
 pub fn cached_path(url: &str) -> Option<PathBuf> {
     use std::hash::{DefaultHasher, Hash, Hasher};
@@ -284,6 +328,7 @@ mod tests {
             profile = "basic"
             words = ["gantry", "sprocket"]
             word-lists = ["more.txt", "https://example.com/w.txt"]
+            subtree-word-lists = ["experiments/*/memelint-words.txt"]
             default-word-lists = false
             ignore = ["vendor/"]
 
@@ -304,6 +349,7 @@ mod tests {
         assert_eq!(c.rules["6.3"], Severity::Off);
         assert_eq!(c.words, ["gantry", "sprocket"]);
         assert_eq!(c.word_lists, ["more.txt", "https://example.com/w.txt"]);
+        assert_eq!(c.subtree_word_lists, ["experiments/*/memelint-words.txt"]);
         assert!(!c.default_word_lists);
         assert_eq!(c.ignore, ["vendor/"]);
         assert_eq!(c.languages["rust"].words, ["frobnicate"]);
@@ -370,6 +416,75 @@ mod tests {
         assert!(err.contains("6.4") && err.contains("cannot check") && err.contains("1.1"));
         assert!(err2.contains("no rule 12.1"));
         assert!(err3.contains("5.1") && err3.contains("not check it yet"));
+    }
+
+    #[test]
+    fn literal_patterns() {
+        assert!(is_literal_pattern("experiments/memelint-words.txt"));
+        assert!(is_literal_pattern("a-b_c.d/e"));
+        assert!(!is_literal_pattern("experiments/*/memelint-words.txt"));
+        assert!(!is_literal_pattern("**/memelint-words.txt"));
+        assert!(!is_literal_pattern("w?.txt"));
+        assert!(!is_literal_pattern("w[ab].txt"));
+        assert!(!is_literal_pattern("w{a,b}.txt"));
+    }
+
+    #[test]
+    fn subtree_globs_keep_to_one_level_unless_doubled() {
+        let one = config(r#"subtree-word-lists = ["experiments/*/memelint-words.txt"]"#)
+            .subtree_globs()
+            .unwrap();
+        assert!(one.is_match("experiments/govsim/memelint-words.txt"));
+        assert!(!one.is_match("experiments/a/b/memelint-words.txt"));
+        assert!(!one.is_match("experiments/memelint-words.txt"));
+        let all = config(r#"subtree-word-lists = ["**/memelint-words.txt"]"#)
+            .subtree_globs()
+            .unwrap();
+        assert!(all.is_match("experiments/govsim/memelint-words.txt"));
+        assert!(all.is_match("experiments/a/b/memelint-words.txt"));
+        assert!(all.is_match("memelint-words.txt"));
+        // No entries: a set that selects no path.
+        assert!(!Config::default().subtree_globs().unwrap().is_match("x"));
+    }
+
+    #[test]
+    fn subtree_word_lists_are_checked_at_load() {
+        let dir = std::env::temp_dir().join(format!("memelint-subtree-{}", std::process::id()));
+        std::fs::create_dir_all(dir.join("experiments/govsim")).unwrap();
+        let path = dir.join("memelint.toml");
+        // A name without `*` must be a file.
+        std::fs::write(&path, r#"subtree-word-lists = ["experiments/absent.txt"]"#).unwrap();
+        let missing = Config::load(&path).unwrap_err().to_string();
+        // A directory is not a word list.
+        std::fs::write(&path, r#"subtree-word-lists = ["experiments/govsim/"]"#).unwrap();
+        let slash = Config::load(&path).unwrap_err().to_string();
+        // An entry that is not correct.
+        std::fs::write(&path, r#"subtree-word-lists = ["experiments/["]"#).unwrap();
+        let bad = Config::load(&path).unwrap_err().to_string();
+        // A name with `*` can give no file; a name without `*` that is a
+        // file is accepted.
+        std::fs::write(
+            dir.join("experiments/govsim/memelint-words.txt"),
+            "flange\n",
+        )
+        .unwrap();
+        std::fs::write(
+            &path,
+            "subtree-word-lists = [\"nothing/*/here.txt\", \"experiments/govsim/memelint-words.txt\"]",
+        )
+        .unwrap();
+        let ok = Config::load(&path);
+        std::fs::remove_dir_all(&dir).unwrap();
+        assert!(
+            missing.contains("`experiments/absent.txt` is not a file"),
+            "{missing}"
+        );
+        assert!(
+            slash.contains("`experiments/govsim/` must name a file"),
+            "{slash}"
+        );
+        assert!(bad.contains("`experiments/[`"), "{bad}");
+        assert_eq!(ok.unwrap().subtree_word_lists.len(), 2);
     }
 
     #[test]
@@ -455,6 +570,7 @@ mod schema {
                 "languages",
                 "profile",
                 "rules",
+                "subtree-word-lists",
                 "word-lists",
                 "words"
             ]
@@ -495,6 +611,7 @@ mod schema {
             profile = "basic"
             words = []
             word-lists = []
+            subtree-word-lists = []
             default-word-lists = true
             ignore = []
             [rules]
