@@ -57,11 +57,20 @@ impl Allowlist {
         }
     }
 
-    /// The word, or a regular inflection of it: the plural, or the -s, -ed
-    /// and -ing forms of a technical verb. The regular spelling rules apply.
-    /// `-es` comes after `s`, `x`, `z`, `ch` and `sh`. `-d` comes after `e`.
-    /// `-ies` and `-ied` come after a `y` that is removed. `-s` does not
-    /// come after `s`, `x`, `z`, `ch` or `sh`.
+    /// The word, or a regular inflection of it: the plural, or the -s and
+    /// -ed forms of a technical verb. Not the -ing form: STE does not let you
+    /// use it (rule 3.5). A technical name that ends in -ing is listed as a
+    /// word. The regular spelling rules apply. `-es` comes after `s`, `x`,
+    /// `z`, `ch` and `sh`. `-d` comes after `e`. `-ies` and `-ied` come after
+    /// a `y` that is removed. `-s` does not come after `s`, `x`, `z`, `ch` or
+    /// `sh`. Before `-ed`, some stems get their last letter again, as in
+    /// `pinned`. memelint does not know which stems. Thus it accepts
+    /// `pinned` and `pined`.
+    /// The word is in the list, with no inflection.
+    pub fn allows_exactly(&self, word: &str) -> bool {
+        self.0.contains(word)
+    }
+
     pub fn allows(&self, word: &str) -> bool {
         if self.0.contains(word) {
             return true;
@@ -72,6 +81,12 @@ impl Allowlist {
                 .iter()
                 .any(|e| stem.ends_with(e))
         };
+        // `pinn` for the listed `pin`.
+        let doubled = |stem: &str| {
+            let mut chars = stem.chars().rev();
+            matches!((chars.next(), chars.next()), (Some(a), Some(b)) if a == b && !"aeiou".contains(a))
+                && listed(&stem[..stem.len() - 1])
+        };
         word.strip_suffix("es")
             .is_some_and(|stem| sibilant(stem) && listed(stem))
             || word
@@ -79,11 +94,10 @@ impl Allowlist {
                 .is_some_and(|stem| !sibilant(stem) && listed(stem))
             || word
                 .strip_suffix("ed")
-                .is_some_and(|stem| !stem.ends_with('e') && listed(stem))
+                .is_some_and(|stem| !stem.ends_with('e') && (listed(stem) || doubled(stem)))
             || word
                 .strip_suffix('d')
                 .is_some_and(|stem| stem.ends_with('e') && listed(stem))
-            || word.strip_suffix("ing").is_some_and(listed)
             || ["ies", "ied"].iter().any(|suffix| {
                 word.strip_suffix(suffix)
                     .is_some_and(|stem| listed(&format!("{stem}y")))
@@ -406,8 +420,9 @@ fn unapproved_message(word: &str, lemma: &str, senses: &[Sense]) -> String {
     message
 }
 
-/// The -ing form of an approved verb, for example `closing` and `running`.
-fn ing_verb(word: &str, dict: &Dictionary) -> Option<String> {
+/// The -ing form of an approved verb or of a technical verb in the
+/// allowlist, for example `closing`, `running` and `parsing`.
+fn ing_verb(word: &str, dict: &Dictionary, allow: &Allowlist) -> Option<String> {
     let stem = word.strip_suffix("ing")?;
     if stem.len() < 2 {
         return None;
@@ -417,7 +432,9 @@ fn ing_verb(word: &str, dict: &Dictionary) -> Option<String> {
         format!("{stem}e"),
         stem[..stem.len() - 1].to_string(), // a stem that has its last letter 2 times
     ];
-    candidates.into_iter().find(|c| dict.is_verb(c))
+    candidates
+        .into_iter()
+        .find(|c| dict.is_verb(c) || allow.allows_exactly(c))
 }
 
 pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Finding> {
@@ -592,7 +609,7 @@ fn judge(
         return verdict("1.1", unapproved_message(word, lemma, senses), replacement);
     }
 
-    if let Some(verb) = ing_verb(word, dict) {
+    if let Some(verb) = ing_verb(word, dict, allow) {
         return verdict(
             "3.5",
             format!(
@@ -852,12 +869,33 @@ mod tests {
     }
 
     #[test]
+    fn ing_form_of_a_technical_verb_is_a_finding() {
+        // `zib` is a technical verb of the project. Its -ing form is rule 3.5,
+        // not an unknown word, and the allowlist does not accept it.
+        let msgs = messages("Zibbing the gantry.", "zib");
+        assert_eq!(
+            msgs,
+            [
+                "'zibbing' is the -ing form of 'zib'; STE allows only the infinitive, imperative, past tense and past participle"
+            ]
+        );
+        assert!(messages("Zib the gantry. The gantry is zibbed.", "zib").is_empty());
+        // An -ing technical name that is listed as a word gets no finding.
+        assert!(messages("The zibbing is wide.", "zibbing").is_empty());
+    }
+
+    #[test]
     fn allowlist_inflections_follow_spelling_rules() {
-        let allow = Allowlist::parse("set box frobe gantry");
-        for word in ["sets", "boxes", "frobed", "gantries", "gantried", "boxing"] {
+        let allow = Allowlist::parse("set box frobe gantry pin");
+        for word in [
+            "sets", "boxes", "frobed", "gantries", "gantried", "pinned", "pined",
+        ] {
             assert!(allow.allows(word), "{word}");
         }
-        for word in ["setes", "setd", "frobeed", "boxs"] {
+        // No -ing forms: STE rule 3.5. `seeed` is not `see` + `ed`.
+        for word in [
+            "setes", "setd", "frobeed", "boxs", "boxing", "pinning", "seeed",
+        ] {
             assert!(!allow.allows(word), "{word}");
         }
     }

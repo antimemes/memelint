@@ -17,7 +17,7 @@ The exit code is 1 when there is an error.
 
 `memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full. `--unsafe-fixes` also replaces each unapproved word with the one alternative of the same part of speech; examine the diff.
 
-## Installing
+## Installation
 
 ASD-STE100 is copyrighted, thus the binary does not contain its dictionary. The first run downloads the PDF from ASD and makes the vocabulary in `~/.cache/memelint/`. The Nix package makes it when it builds.
 
