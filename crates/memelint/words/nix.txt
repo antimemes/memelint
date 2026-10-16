@@ -1,30 +1,31 @@
-# Technical names of Nix. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Nix. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-derivation
-flake
-nixpkgs
-store
-attribute
-attrset
-overlay
-module
-package
-hash
-fetcher
-tarball
-sandbox
-builder
-output
-input
-lock
-rebuild
-channel
-nix
-devshell
-attr
-attrs
-pure
-impure
+derivation     # the full instructions for one build that Nix runs
+flake          # a Nix project that has a flake.nix file
+nixpkgs        # the primary collection of Nix packages
+store          # the directory where Nix keeps all build outputs
+attribute      # a named value in an attribute set
+attrset        # a set of named values
+overlay        # a function that changes packages in nixpkgs
+module         # a function that sets part of a NixOS configuration
+package        # a derivation with a program as its output
+hash           # a fixed-size value made from the bytes of data
+fetcher        # a function that downloads a source for a build
+tarball        # a tar file that holds many files
+sandbox        # the closed environment where Nix runs a build
+builder        # the program that runs the build of a derivation
+output         # a path in /nix/store that a build makes
+input          # an external source that a flake uses
+lock           # the file that records the versions of all inputs
+rebuild        # to build and apply the system configuration again
+channel        # a branch of nixpkgs that changes with time
+nix            # the purely functional package manager
+devshell       # a shell with the build tools of a project loaded
+attr           # a named value in an attribute set
+attrs          # a set of named values
+pure           # depends only on its declared inputs
+impure         # can read things outside its declared inputs

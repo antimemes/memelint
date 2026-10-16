@@ -1,54 +1,55 @@
-# Technical names of Python. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Python. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-docstring
-decorator
-tuple
-dict
-list
-set
-generator
-comprehension
-module
-package
-pip
-venv
-virtualenv
-pytest
-lambda
-kwargs
-args
-dunder
-metaclass
-coroutine
-asyncio
-pickle
-interpreter
-bytecode
-pep
-mypy
-ruff
-wheel
-sdist
-str
-int
-bool
-dataclass
-kwarg
-iterable
-traceback
-getattr
-isinstance
-noqa
-pyproject
-pyright
-typeshed
-argparse
-uv
-hatch
-setuptools
-contextvar
-self
-hint
+docstring      # a string in a definition that documents it
+decorator      # a function that wraps a definition to change it
+tuple          # a fixed sequence of values that cannot change
+dict           # the Python type that maps keys to values
+list           # the Python type of a sequence that can change
+set            # the Python type that holds each item one time
+generator      # a function that gives values one at a time
+comprehension  # an expression that builds a collection from a loop
+module         # a Python file that code can import
+package        # a directory of Python modules that code can import
+pip            # the standard tool that installs Python packages
+venv           # a directory with an isolated Python and packages
+virtualenv     # a tool that makes a venv
+pytest         # a test framework for Python
+lambda         # a function with no name, written in an expression
+kwargs         # the dict of arguments that are given by name
+args           # the tuple of arguments that are given by position
+dunder         # a name that starts and ends with two underscores
+metaclass      # a class that has classes as its instances
+coroutine      # a function that can stop and then continue
+asyncio        # the standard module for async code
+pickle         # the module that turns Python objects into bytes
+interpreter    # the program that runs Python code
+bytecode       # the instructions that the interpreter runs
+pep            # a document with the spec of a Python change
+mypy           # a type checker for Python
+ruff           # a linter and formatter for Python
+wheel          # a built package file that pip installs
+sdist          # a source package file that pip can build
+str            # the Python string type
+int            # the Python integer type
+bool           # the Python boolean type
+dataclass      # a Python class that the dataclass decorator makes
+kwarg          # an argument that is passed by name
+iterable       # an object that can be looped over
+traceback      # the list of calls that led to an error
+getattr        # the function that reads an attribute by name
+isinstance     # the function that checks the type of an object
+noqa           # a comment that tells a linter to skip a line
+pyproject      # the file that configures a Python project
+pyright        # a type checker for Python
+typeshed       # the collection of stub files for Python types
+argparse       # the standard module that parses command-line arguments
+uv             # a package manager for Python
+hatch          # a build tool for Python projects
+setuptools     # a library that builds Python packages
+contextvar     # a variable whose value is local to a context
+self           # the object that a method is called on
+hint           # a note in code that says the type of a value

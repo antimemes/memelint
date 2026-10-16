@@ -1,15 +1,16 @@
-# Technical names of TOML. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of TOML. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-table
-key
-value
-array
-inline
-string
-integer
-float
-boolean
-datetime
+table          # a named group of keys and values
+key            # the name on the left of the = sign
+value          # the data on the right of the = sign
+array          # a list of values in square brackets
+inline         # written on one line in curly brackets
+string         # a text value in quotation marks
+integer        # a number with no decimal part
+float          # a number with a decimal part
+boolean        # a value that is one of `true` and `false`
+datetime       # a value that holds a date and a time

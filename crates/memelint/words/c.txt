@@ -1,24 +1,25 @@
-# Technical names of C. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of C. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-pointer
-struct
-union
-enum
-typedef
-macro
-header
-preprocessor
-linker
-malloc
-free
-buffer
-segfault
-const
-static
-volatile
-inline
-thread
-mutex
+pointer        # a variable that holds the address of memory
+struct         # a type that groups named fields together
+union          # a type with fields that use the same memory
+enum           # a type with a fixed set of named values
+typedef        # a declaration that gives a type a new name
+macro          # a name that the preprocessor replaces with text
+header         # a file of declarations that other files include
+preprocessor   # the step that expands macros before the compiler runs
+linker         # the program that joins compiled objects into one binary
+malloc         # the function that allocates memory from the heap
+free           # to release memory that malloc allocated
+buffer         # a memory block that holds data for a time
+segfault       # a crash caused by access to memory not permitted
+const          # a qualifier for a value that cannot change
+static         # a qualifier that limits a name to one file
+volatile       # a qualifier for a value that external events change
+inline         # a request to put the function body in callers
+thread         # a sequence of instructions that runs in a process
+mutex          # a lock that only one thread can hold

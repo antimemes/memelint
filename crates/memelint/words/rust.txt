@@ -1,45 +1,46 @@
-# Technical names of Rust. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Rust. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-crate
-cargo
-clippy
-rustfmt
-rustc
-rustdoc
-trait
-impl
-lifetime
-borrow
-ownership
-unsafe
-async
-await
-mutex
-arc
-rc
-box
-vec
-slice
-tuple
-option
-result
-panic
-unwrap
-derive
-generic
-monomorphization
-module
-workspace
-feature
-bench
-ffi
-edition
-toolchain
-linker
-unsized
-sized
-dyn
-self
+crate          # a unit of Rust code that cargo compiles
+cargo          # the build tool and package manager of Rust
+clippy         # the linter for Rust code
+rustfmt        # the tool that formats Rust code
+rustc          # the Rust compiler
+rustdoc        # the tool that makes documentation from Rust code
+trait          # a set of methods that a type can supply
+impl           # a block that gives methods to a type
+lifetime       # the part of code where a reference is permitted
+borrow         # to get a temporary reference to a value
+ownership      # the rule that one variable holds each value
+unsafe         # not examined by the compiler for memory safety
+async          # a keyword that makes a function return a future
+await          # a keyword that waits for a future to complete
+mutex          # a lock that only one thread can hold
+arc            # a reference-counted pointer that many threads can use
+rc             # a reference-counted pointer for one thread
+box            # a pointer to a value on the heap
+vec            # an array type that can increase in length
+slice          # a reference to a part of a sequence
+tuple          # a fixed sequence of values of mixed types
+option         # the type of a value that can be missing
+result         # a type that holds a value, else an error
+panic          # to stop the thread with an error
+unwrap         # to get the inner value, and panic if none
+derive         # to let the compiler write the trait methods
+generic        # a definition with a parameter that is a type
+monomorphization # the step that copies generic code for each type
+module         # a named scope of items in a crate
+workspace      # a set of crates that cargo builds together
+feature        # a flag that turns on part of a crate
+bench          # a test that measures how fast code runs
+ffi            # the interface between Rust and other languages
+edition        # a named version of the Rust language rules
+toolchain      # one version of the Rust compiler and its tools
+linker         # the program that joins compiled objects into one binary
+unsized        # with a size the compiler does not know
+sized          # with a size that the compiler knows
+dyn            # a keyword that marks a trait object
+self           # the value that a method is called on

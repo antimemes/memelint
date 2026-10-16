@@ -1,19 +1,21 @@
-# Technical names of Go. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Go. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-goroutine
-channel
-slice
-struct
-interface
-package
-module
-pointer
-defer
-panic
-rune
-gofmt
-vet
-embed
+goroutine      # a light thread that the Go runtime schedules
+channel        # a typed pipe that goroutines send values through
+slice          # a view into a part of an array
+struct         # a type that groups named fields together
+receiver       # the value that a method is called on
+interface      # a type that is a set of method signatures
+package        # a directory of Go files that compile together
+module         # a set of packages with one version
+pointer        # a variable that holds the address of a value
+defer          # to run a function when the outer function returns
+panic          # to stop and send an error up the stack
+rune           # an integer that holds one Unicode code point
+gofmt          # the tool that formats Go code
+vet            # the tool that finds possible errors in Go code
+embed          # to include a file in the binary when compiled

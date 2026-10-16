@@ -1,20 +1,21 @@
-# Technical names of Java. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Java. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-class
-interface
-bean
-jar
-jvm
-bytecode
-garbage
-collector
-generic
-annotation
-maven
-gradle
-servlet
-thread
-exception
+class          # a template for the fields and methods of objects
+interface      # a type that lists methods a class must give
+bean           # an object that a framework makes and controls
+jar            # a file that holds compiled Java classes
+jvm            # the machine that runs Java bytecode
+bytecode       # the instructions that the JVM runs
+garbage        # memory that the program no longer uses
+collector      # the runtime part that releases memory not in use
+generic        # a definition with a parameter that is a type
+annotation     # a tag on code for tools and the runtime
+maven          # a build tool for Java projects
+gradle         # a build tool for Java projects
+servlet        # a Java class that handles HTTP requests
+thread         # a sequence of instructions that runs in a process
+exception      # an error object that stops the usual program flow

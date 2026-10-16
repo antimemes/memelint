@@ -1,32 +1,32 @@
-# Technical names of TSX. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of TSX. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-promise
-callback
-closure
-prototype
-node
-npm
-bundle
-bundler
-transpile
-polyfill
-dom
-jsx
-tsx
-async
-await
-undefined
-null
-module
-esm
-commonjs
-package
-generic
-enum
-interface
-tuple
-union
-intersection
+promise        # an object for the result of an async task
+callback       # a function given to other code to invoke
+closure        # a function that keeps the outer scope variables
+prototype      # the object that an object gets missing properties from
+npm            # the package manager of Node.js
+bundle         # one file made from many modules
+bundler        # the tool that joins modules into one file
+transpile      # to turn code into a different language version
+polyfill       # code that adds a missing feature to a runtime
+dom            # the object tree of a web page in memory
+jsx            # a syntax for markup tags in JavaScript code
+tsx            # TypeScript syntax with JSX tags in it
+async          # a keyword for a function that returns a promise
+await          # a keyword that waits for a promise value
+undefined      # the value of a variable with no value set
+null           # the value for no object
+module         # a file with exports that other files import
+esm            # the module system that uses import and export
+commonjs       # the module system of Node.js before ESM
+package        # a directory of code with a package.json file
+generic        # a definition with a parameter that is a type
+enum           # a type with a fixed set of named values
+interface      # a type that lists the properties an object has
+tuple          # an array type with fixed length and item types
+union          # a type that is one of its parts
+intersection   # a type with the properties of all its parts

@@ -21,11 +21,21 @@ word-lists = ["words.txt"]
 
 ### The test for a bundled list
 
-A word goes into a bundled list when it is correct in each of these points:
+A bundled list applies to all projects of a language, and the `software` list to all projects. Thus a word goes into a bundled list when it is correct in these points for a person who does not know the project:
 
-1. It is the name of one item in software, for example `mutex` or `stdin`. The person who reads a comment does not think about which meaning applies.
-2. ASD-STE100 has no approved word for that item. If it has one, the approved word is correct, and the list does not get the word.
-3. It is not also a word of general English with a different, less clear meaning. `artifact` names a build output, but in a sentence it can mean many different items. STE removes words of this type. Write the accurate words: the log file, the test report, the compiled program.
+1. The word names one specified item, and it is the most accurate word for that item. `artifact`, `helper` and `context` are not correct. The sentence is better with the accurate word, for example "the log file" and not "the `artifact`".
+2. The meaning comes from the language, its standard library, the system, the tools, or the general vocabulary of software. Not from one library, framework or domain. `schema`, `model` and `session` are not correct. Each library that a project uses gives the word a different meaning, and only the project knows its libraries.
+3. In the comments of that language, most uses of the word have that one meaning. The other meanings are easy to see from the spelling, or from the subsequent word. `path` is correct: "file path" and "URL path" are far apart, and the sentence shows which one applies. `node` is correct: the runtime is written `Node.js`. `tag` is not correct. In comments it is a `git` tag, a markup tag, a struct tag and a build tag, with no mark that shows which.
+4. ASD-STE100 has no approved word for that item, and the word is not an approved word. If it is, the list does not get the word.
+
+Write the meaning after the word as a comment. Then the person who examines the pull request sees the meaning on the same line, and sees a different meaning immediately:
+
+```text
+sentinel      # a value that marks an end or an absence
+node          # a point of a tree, a graph or a document; the runtime is Node.js
+```
+
+We examined these points against 566,000 comments of Python, Rust, Go and JavaScript projects. The words that a person reads incorrectly are the words of point 1 and point 2. These are words that many different items can be, for example `schema`, `session` and `resource`. Each library fills them with a different item. Words with meanings that are far apart, for example `key`, `path` and `union`, a person reads correctly.
 
 A word that is not correct in one point can be a technical name in one project. Put it in the `words` of that project, not in a bundled list.
 

@@ -51,7 +51,9 @@ mod tests {
     fn each_name_has_a_list_of_plain_words() {
         for name in NAMES {
             let text = list(name).unwrap_or_else(|| panic!("no list {name}"));
-            for word in text.lines().filter(|l| !l.starts_with('#')) {
+            // A line is a word, and then its meaning after `#`.
+            for line in text.lines() {
+                let word = line.split('#').next().unwrap_or("").trim();
                 assert!(
                     word.chars().all(|c| c.is_ascii_lowercase() || c == '-'),
                     "{word:?} in {name} is not a plain word"

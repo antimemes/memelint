@@ -1,14 +1,15 @@
-# Technical names of Markdown. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of Markdown. A word belongs here when it names one definite item, its
+# meaning comes from the language, the system or computer science, that meaning
+# is the one that most comments use, and STE has no approved word for it. Write
+# the meaning after the word as a comment. See docs/src/words.md, "The test for
+# a bundled list".
 
-heading
-link
-fence
-inline
-emphasis
-blockquote
-footnote
-anchor
-badge
+heading        # a line that starts a section with its title
+link           # text that points to a URL
+fence          # the three back quote marks around a code block
+inline         # in a line of text, not as a block
+emphasis       # text between asterisks that is shown in italic
+blockquote     # a block of quoted lines that start with >
+footnote       # an end note that a text mark points to
+anchor         # a page position that a link goes to
+badge          # a small image that shows a project status

@@ -1,383 +1,373 @@
-# Technical names of software, for the files of all languages. A word belongs here when it is the name of one
-# item, STE has no approved word for it, and it is not also a word of general
-# English with a less clear meaning. See docs/src/words.md, "The test for a
-# bundled list".
+# Technical names of software, for the files of all languages. A word belongs
+# here when it names one definite item, its meaning comes from the language, the
+# system or computer science, that meaning is the one that most comments use,
+# and STE has no approved word for it. Write the meaning after the word as a
+# comment. See docs/src/words.md, "The test for a bundled list".
 
 # data
-array
-boolean
-buffer
-byte
-bit
-cache
-checksum
-constant
-csv
-enum
-float
-hash
-index
-integer
-json
-key
-list
-map
-metadata
-null
-offset
-pointer
-queue
-reference
-schema
-set
-slice
-stack
-string
-struct
-timestamp
-tuple
-unicode
-utf
-ascii
-variable
-value
-vector
-xml
-yaml
-toml
-markdown
-markup
-checkpoint
-collision
-counter
-dataset
-field
-id
-immutable
-malformed
-mutable
-nested
-node
-normalize
-nullable
-numeric
-scalar
-seed
-serializer
-snapshot
-subtree
-tree
-union
-validate
-validator
+array          # a sequence of values of the same type
+boolean        # a type with only two possible values
+buffer         # a memory area that holds data temporarily
+byte           # a unit of data that is 8 bits
+bit            # the smallest unit of data, with 2 possible values
+cache          # a copy of data kept for fast access
+checksum       # a number calculated from data to find changes
+constant       # a named value that cannot change
+csv            # a text format of values divided by commas
+enum           # a type with a fixed set of named values
+float          # a number that can have a decimal part
+hash           # a fixed-size value calculated from data
+index          # the position of an item in a sequence
+integer        # a number with no decimal part
+json           # a text format for nested named values
+key            # a value that identifies an entry in a map
+list           # a sequence of items that can change in length
+map            # a collection of keys with their values
+metadata       # data that gives facts about other data
+null           # a special value that shows there is no value
+offset         # the distance of a position from a start point
+pointer        # a value that holds the memory address of data
+queue          # a sequence of items, first in, first out
+reference      # a value that points to an item in memory
+set            # a collection in which no item occurs two times
+union          # a type that holds one of several types
+slice          # a view of a part of a sequence
+stack          # a sequence of items, last in, first out
+string         # a sequence of characters
+struct         # a type made of named fields
+timestamp      # a value that records one point in time
+tuple          # a fixed sequence of values with possibly different types
+unicode        # the standard that gives a number to each character
+utf            # an encoding of unicode characters as bytes
+ascii          # the standard set of 128 characters of english text
+variable       # a named holder of a value that can change
+value          # a unit of data, for example a number
+xml            # a text markup format of nested parts in tags
+yaml           # a text data format that uses indentation for structure
+toml           # a text format of configuration files with named sections
+markdown       # a markup language with simple marks for structure
+markup         # codes added to text to give its structure
+checkpoint     # a saved state that a process can resume from
+collision      # two different items that map to the same key
+counter        # a variable that counts events
+dataset        # a named collection of data records
+field          # a named part of a record
+id             # a value that identifies one item
+immutable      # cannot be changed after creation
+malformed      # does not have the form that the rules require
+mutable        # can be changed after creation
+nested         # placed inside another item of the same kind
+normalize      # to make a value conform to a standard form
+nullable       # can hold a null value
+numeric        # made of numbers
+scalar         # a single value that is not a collection
+seed           # the initial data that a process starts from
+serializer     # code that turns an object into bytes
+snapshot       # a copy of a state at one point in time
+subtree        # a tree that is part of a larger tree
+tree           # a structure of items that each have one parent
+node           # a point of a tree, a graph or a document; the runtime is Node.js
+validate       # to check that a value follows the rules
+validator      # code that checks that a value follows the rules
 
 # code
-argument
-block
-branch
-callback
-class
-closure
-compile
-compiler
-constructor
-declaration
-definition
-expression
-function
-generic
-identifier
-import
-export
-inline
-interface
-iterator
-keyword
-lambda
-literal
-loop
-macro
-method
-module
-namespace
-operator
-parameter
-prototype
-recursion
-return
-scope
-statement
-syntax
-template
-trait
-type
-annotation
-adapter
-alias
-arg
-attribute
-callable
-caller
-consumer
-declare
-derive
-deterministic
-eval
-fallback
-global
-handler
-infer
-initialize
-instance
-invoke
-language
-lazy
-lifecycle
-native
-nonzero
-param
-passthrough
-placeholder
-print
-producer
-provider
-qualifier
-reader
-receiver
-ref
-resolve
-resolver
-sentinel
-signature
-stdlib
-subclass
-untyped
-var
-variant
-wrapper
-writer
+argument       # a value that is given to a function
+block          # a group of statements that form one unit
+branch         # a path through code that a condition selects
+callback       # a function given to other code to run subsequently
+class          # a template for objects, with data and methods
+closure        # a function that keeps the variables of its context
+compile        # to change source code into machine code
+compiler       # a program that changes source code into machine code
+constructor    # the function that makes and initializes an instance
+declaration    # a statement that gives a name and its type
+definition     # the code that gives a name its body
+expression     # code that calculates one value when it runs
+function       # a named unit of code that can be run
+signature      # the name, the parameters and the result type of a function
+generic        # code written for more than one type
+identifier     # a name that the code gives to an item
+import         # to make the items of a module available
+export         # to make an item available to other modules
+inline         # written directly where it is used
+interface      # a set of methods that a type must have
+iterator       # an object that gives items one at a time
+keyword        # a word with a fixed meaning in the language
+lambda         # a function with no name, written in an expression
+literal        # a value written directly in the code
+loop           # a statement that runs its body again and again
+macro          # code that makes other code at compile time
+method         # a function that is part of a class
+module         # a named unit of code in one file
+namespace      # a named group of names, isolated from other groups
+operator       # a symbol that does an operation on values
+parameter      # a named input of a function
+prototype      # an object that other objects get their methods from
+recursion      # code in which a function runs itself
+return         # to end a function and give back a value
+scope          # the code area where a name can be used
+statement      # one complete instruction in the code
+syntax         # the rules of how code must be written
+template       # a definition with open parts to fill in
+trait          # a named set of methods a type can have
+type           # the category of value that an item can hold
+annotation     # a mark added to code to give more information
+adapter        # code that makes one interface fit another
+alias          # a second name for the same item
+arg            # a value that is passed to a function
+attribute      # a named property attached to an item
+callable       # a value that can be called like a function
+caller         # the code that calls a function
+consumer       # code that takes values that another part makes
+declare        # to state that a name exists and give its type
+derive         # to make one definition from another automatically
+deterministic  # gives the same output for the same input
+eval           # to run code that is given as text
+fallback       # a value that is used when the first choice fails
+global         # visible from everywhere in a program
+handler        # a function that runs in response to an event
+infer          # to work out a fact from the given data
+initialize     # to give a value its first state
+instance       # one concrete copy made from a template
+invoke         # to call a function
+language       # a system of words and rules for communication
+lazy           # computed only when first needed
+lifecycle      # the stages an object goes through from start to end
+native         # built into the platform itself
+nonzero        # not equal to zero
+param          # a named input of a function
+passthrough    # passes data on without a change
+placeholder    # a value that stands in until the real one comes
+print          # to write text to the output
+producer       # code that makes values for another part to use
+provider       # code that supplies a service to other code
+qualifier      # a word added to a name to narrow its meaning
+reader         # an object that reads data from a source
+ref            # a short name for a reference
+resolve        # to work out the final concrete form of a thing
+resolver       # code that finds the concrete thing a name stands for
+sentinel       # a special value that marks a condition
+stdlib         # the library that comes with the language
+subclass       # a class that extends another class
+untyped        # has no declared type
+var            # a named place that holds a value
+variant        # one of the forms that a value can take
+wrapper        # a layer around a thing that gives a new interface
+writer         # an object that writes data to a destination
 
 # text
-delimiter
-escape
-newline
-regex
-token
-tokenize
-whitespace
-parse
-parser
-lexer
-grammar
-format
-formatter
-encode
-decode
-serialize
-deserialize
-css
-html
-line
-prefix
-scanner
-section
-substring
-suffix
-text
-trailing
+delimiter      # a character that divides a text into parts
+escape         # to mark a character to remove its special meaning
+newline        # the character that ends a line
+regex          # a text pattern for a set of strings
+token          # the smallest unit of text that has a meaning
+tokenize       # to divide text into tokens
+whitespace     # characters that make only space in text
+parse          # to read text and make a structure from it
+parser         # code that reads text and makes its structure
+lexer          # code that divides text into tokens
+grammar        # the rules that give the structure of a language
+format         # the specified layout of data in a text
+formatter      # a program that puts code in the standard layout
+encode         # to change data into a specified sequence of bytes
+decode         # to change a sequence of bytes back into data
+serialize      # to change an object into a sequence of bytes
+deserialize    # to change a sequence of bytes into an object
+css            # the language that styles web pages
+html           # the markup language of web pages
+line           # the text between two line breaks
+prefix         # characters at the start of a string
+scanner        # a program that goes through input to find items
+section        # a named part of a file
+substring      # a contiguous part of a string
+suffix         # characters at the end of a string
+text           # characters that people can read
+trailing       # at the end of a sequence
 
 # building and running
-binary
-build
-bundle
-bundler
-debug
-debugger
-dependency
-deploy
-pipeline
-link
-linker
-library
-package
-plugin
-extension
-runtime
-toolchain
-version
-release
-install
-uninstall
-upgrade
-config
-configuration
-default
-environment
-flag
-option
-script
-shell
-terminal
-command
-cli
-api
-sdk
-bootstrap
-entrypoint
-env
-executable
-framework
-loader
-pin
-standalone
-vendor
-workspace
+binary         # an executable file of machine code
+build          # to make the output files from the source code
+bundle         # a set of files put together as one unit
+bundler        # a program that puts many files together into one
+debug          # to find and correct the errors in a program
+debugger       # a program that examines a program while it runs
+dependency     # a package that is necessary for a project
+deploy         # to put a program into operation on its servers
+pipeline       # steps in sequence, output from one into the next
+link           # to join compiled units into one program
+linker         # a program that joins compiled units into one program
+library        # a collection of code that programs can use
+package        # a named unit of code with a version
+plugin         # code added to a program to extend it
+runtime        # the code that operates a program while it runs
+toolchain      # the set of programs that build a project
+version        # a number that identifies one release of software
+release        # a version of software given to users
+install        # to put software on a system for use
+uninstall      # to remove installed software from a system
+upgrade        # to replace software with a more recent version
+config         # the values that control how a program runs
+configuration  # the values that control how a program runs
+default        # the value used when no value is given
+environment    # the system and variables that a program runs in
+flag           # a boolean option given on the command line
+option         # a named value that changes how a command runs
+script         # a program run directly from its source text
+shell          # the program that reads and runs text commands
+terminal       # the text display where a user gives commands
+command        # an instruction to a program to do one task
+cli            # a program interface made of text commands
+api            # the set of functions that other code can use
+sdk            # the tools and libraries for programs on a platform
+bootstrap      # to start a system from a minimal first stage
+entrypoint     # the function where a program starts
+env            # the environment that a program runs in
+executable     # a file that the system can run
+framework      # a library that sets the structure of a program
+loader         # code that brings a resource into a program
+standalone     # runs without other parts
+workspace      # a set of projects that are managed together
 
 # system
-allocate
-deallocate
-filesystem
-directory
-file
-path
-memory
-thread
-process
-mutex
-lock
-unlock
-socket
-port
-host
-server
-client
-daemon
-service
-container
-descriptor
-handle
-stream
-pipe
-stdin
-stdout
-stderr
-signal
-exit
-timeout
-retry
-log
-error
-warning
-exception
-panic
-overflow
-underflow
-garbage
-collector
-latency
-throughput
-async
-await
-channel
-event
-listener
-dispatch
-child
-cmd
-console
-crash
-cwd
-dir
-exec
-fork
-launcher
-logger
-parent
-pool
-root
-startup
-storage
-subprocess
-symlink
-tenant
-user
-worker
+allocate       # to get a block of memory for use
+deallocate     # to release a block of memory for other use
+filesystem     # the system that keeps files and directories
+directory      # a named container of files and other directories
+file           # a named sequence of bytes kept on storage
+path           # the text that gives the location of a file
+memory         # the storage a program uses while it runs
+thread         # a unit of a process that runs in parallel
+process        # one instance of a program in operation
+mutex          # a lock that one thread at a time holds
+lock           # a control that gives only one thread access
+unlock         # to release a lock
+socket         # an endpoint that sends and receives network data
+port           # a number that identifies one service on a host
+host           # a machine on a network
+server         # a program that receives requests and gives responses
+client         # a program that sends requests to a server
+daemon         # a program that runs without a user interface
+service        # a program that does a task for other programs
+descriptor     # a number that identifies an open file
+handle         # a value that gives access to a system resource
+stream         # a sequence of data read part by part
+pipe           # a channel that moves data between two processes
+stdin          # the standard input stream of a process
+stdout         # the standard output stream of a process
+stderr         # the standard error stream of a process
+signal         # a short message that the system gives a process
+exit           # to stop a process and give a status code
+timeout        # the maximum time that an operation can run
+retry          # to do an operation again after an error
+log            # a record of events written as a program runs
+error          # a condition that stops an operation
+warning        # a message about a possible problem
+exception      # an error that stops the usual flow of code
+panic          # an error that stops the program immediately
+overflow       # a result that is too large for its type
+underflow      # a result that is too small for its type
+garbage        # memory that a program no longer uses
+collector      # the part that releases memory that is garbage
+latency        # the time between a request and its response
+throughput     # the work done in one unit of time
+async          # runs while the caller continues with other work
+await          # to wait for an async operation to complete
+channel        # a path that sends values between threads
+event          # an occurrence that causes a handler to run
+listener       # code that waits for an event and then runs
+dispatch       # to send an event to its handler
+child          # an item directly under another in a hierarchy
+cmd            # a command to run
+console        # the text interface where a program prints
+crash          # to stop suddenly because of an error
+cwd            # the directory that a process works in
+dir            # a folder that holds files
+exec           # to run a program
+fork           # to make a copy that continues on its own
+launcher       # a program that starts another program
+logger         # an object that writes log messages
+parent         # the item directly above another in a hierarchy
+pool           # a set of resources kept ready for reuse
+startup        # the phase when a program begins to run
+storage        # a place where data is kept
+subprocess     # a process that a program starts
+symlink        # a file that points to another path
+tenant         # one customer whose data is kept apart from others
+user           # a person who uses the program
+worker         # a unit that runs tasks given to it
 
 # network and web
-http
-https
-url
-uri
-request
-response
-header
-payload
-endpoint
-webhook
-cookie
-session
-login
-logout
-password
-credential
-permission
-upload
-download
-proxy
-backend
-frontend
-database
-query
-transaction
-migration
-row
-column
-table
-auth
-backoff
-bearer
-body
-message
-mirror
-network
-offline
-online
-protocol
-secret
-throttle
+http           # the protocol of requests and responses on the web
+network        # computers that are connected and send data to each other
+https          # http on an encrypted connection
+url            # a text address of a resource on the web
+uri            # a text string that identifies a resource
+request        # a message that a client sends to a server
+response       # a message that a server returns to a client
+header         # a named value at the start of a message
+payload        # the data part of a message
+endpoint       # an address where a service receives requests
+webhook        # a url that gets a request on an event
+cookie         # a small value a server keeps in the browser
+login          # the step where a user gives credentials for access
+logout         # the step where a user ends a session
+password       # a secret string that identifies a user
+credential     # a secret value that shows who a user is
+permission     # an approval for a user to do one operation
+upload         # to send a file to a server
+download       # to get a file from a server
+proxy          # a server between a client and a different server
+backend        # the part of a system that runs on servers
+frontend       # the part of a system that the user sees
+database       # a system that keeps data for queries
+query          # a request to a database for specified data
+transaction    # a group of operations that completes as one unit
+migration      # a recorded change to the structure of a database
+row            # one record in a table
+column         # one named field in each row of a table
+table          # a set of rows that have the same columns
+auth           # the checks of who a user is and what they may do
+backoff        # a growing wait between retries
+bearer         # a token that gives access to whoever presents it
+body           # the main content of an item
+message        # a unit of data that is sent to a receiver
+mirror         # a copy of a source kept in sync elsewhere
+offline        # not connected to a network
+online         # connected to a network
+protocol       # an agreed set of rules for how parts interact
+secret         # a value that must not be shown
+throttle       # to limit how often something runs
 
 # work
-test
-assert
-fixture
-mock
-benchmark
-profile
-lint
-format
-refactor
-commit
-merge
-diff
-patch
-repository
-branch
-tag
-changelog
-readme
-license
-todo
-allowlist
-checkout
-coverage
-docs
-edit
-harness
-metrics
-migrate
-repo
-rev
-revision
-software
-spec
-typecheck
+test           # code that checks that other code is correct
+assert         # to stop with an error on an incorrect condition
+fixture        # the fixed data that a test starts with
+mock           # a test object that replaces the usual one
+benchmark      # a test that measures how fast code runs
+profile        # to measure the time that program parts use
+lint           # to check code for errors in form and style
+format         # to put code in the standard layout
+refactor       # to change the structure of code, not its result
+commit         # a recorded set of changes to a repository
+merge          # to join the changes of two branches
+diff           # the list of changed lines between two versions
+patch          # a file of changes to apply to text
+repository     # the storage of a project and all its versions
+branch         # an isolated line of commits in a repository
+changelog      # a file that lists the changes in each release
+readme         # the first file to read about a project
+license        # the document that gives the conditions of use
+todo           # a note in code about work to do
+allowlist      # a list of items that are permitted
+coverage       # the share of code that tests run
+docs           # the written documentation of a project
+edit           # to change the contents of a text
+harness        # the code that sets up and runs tests
+metrics        # numbers that measure how a system behaves
+migrate        # to move a system to a new form
+repo           # a place that stores the versioned files of a project
+rev            # one recorded version of a repository
+revision       # one recorded version of a repository
+software       # the programs that run on a computer
+spec           # a statement of what a system must do
+typecheck      # to check that the types in code are consistent
