@@ -1,3 +1,8 @@
+# Technical names of TOML. A word belongs here when it is the name of one
+# item, STE has no approved word for it, and it is not also a word of general
+# English with a less clear meaning. See docs/src/words.md, "The test for a
+# bundled list".
+
 table
 key
 value
