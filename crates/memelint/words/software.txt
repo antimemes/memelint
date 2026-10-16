@@ -12,7 +12,6 @@ byte           # a unit of data that is 8 bits
 bit            # the smallest unit of data, with 2 possible values
 cache          # a copy of data kept for fast access
 checksum       # a number calculated from data to find changes
-constant       # a named value that cannot change
 csv            # a text format of values divided by commas
 enum           # a type with a fixed set of named values
 float          # a number that can have a decimal part
@@ -29,7 +28,6 @@ offset         # the distance of a position from a start point
 pointer        # a value that holds the memory address of data
 queue          # a sequence of items, first in, first out
 reference      # a value that points to an item in memory
-set            # a collection in which no item occurs two times
 union          # a type that holds one of several types
 slice          # a view of a part of a sequence
 stack          # a sequence of items, last in, first out
@@ -41,7 +39,6 @@ unicode        # the standard that gives a number to each character
 utf            # an encoding of unicode characters as bytes
 ascii          # the standard set of 128 characters of english text
 variable       # a named holder of a value that can change
-value          # a unit of data, for example a number
 xml            # a text markup format of nested parts in tags
 yaml           # a text data format that uses indentation for structure
 toml           # a text format of configuration files with named sections
@@ -83,21 +80,18 @@ constructor    # the function that makes and initializes an instance
 declaration    # a statement that gives a name and its type
 definition     # the code that gives a name its body
 expression     # code that calculates one value when it runs
-function       # a named unit of code that can be run
 signature      # the name, the parameters and the result type of a function
 generic        # code written for more than one type
 identifier     # a name that the code gives to an item
 import         # to make the items of a module available
 export         # to make an item available to other modules
 inline         # written directly where it is used
-interface      # a set of methods that a type must have
 iterator       # an object that gives items one at a time
 keyword        # a word with a fixed meaning in the language
 lambda         # a function with no name, written in an expression
 literal        # a value written directly in the code
-loop           # a statement that runs its body again and again
+loop           # a statement that runs its body again and again; STE approves the noun, and the verb is a technical verb
 macro          # code that makes other code at compile time
-method         # a function that is part of a class
 module         # a named unit of code in one file
 namespace      # a named group of names, isolated from other groups
 operator       # a symbol that does an operation on values
@@ -110,7 +104,6 @@ statement      # one complete instruction in the code
 syntax         # the rules of how code must be written
 template       # a definition with open parts to fill in
 trait          # a named set of methods a type can have
-type           # the category of value that an item can hold
 annotation     # a mark added to code to give more information
 adapter        # code that makes one interface fit another
 alias          # a second name for the same item
@@ -192,7 +185,6 @@ bundler        # a program that puts many files together into one
 debug          # to find and correct the errors in a program
 debugger       # a program that examines a program while it runs
 dependency     # a package that is necessary for a project
-deploy         # to put a program into operation on its servers
 pipeline       # steps in sequence, output from one into the next
 link           # to join compiled units into one program
 linker         # a program that joins compiled units into one program
@@ -202,8 +194,6 @@ plugin         # code added to a program to extend it
 runtime        # the code that operates a program while it runs
 toolchain      # the set of programs that build a project
 version        # a number that identifies one release of software
-release        # a version of software given to users
-install        # to put software on a system for use
 uninstall      # to remove installed software from a system
 upgrade        # to replace software with a more recent version
 config         # the values that control how a program runs
@@ -239,8 +229,6 @@ memory         # the storage a program uses while it runs
 thread         # a unit of a process that runs in parallel
 process        # one instance of a program in operation
 mutex          # a lock that one thread at a time holds
-lock           # a control that gives only one thread access
-unlock         # to release a lock
 socket         # an endpoint that sends and receives network data
 port           # a number that identifies one service on a host
 host           # a machine on a network
@@ -256,11 +244,9 @@ stdin          # the standard input stream of a process
 stdout         # the standard output stream of a process
 stderr         # the standard error stream of a process
 signal         # a short message that the system gives a process
-exit           # to stop a process and give a status code
 timeout        # the maximum time that an operation can run
 retry          # to do an operation again after an error
 log            # a record of events written as a program runs
-error          # a condition that stops an operation
 warning        # a message about a possible problem
 exception      # an error that stops the usual flow of code
 panic          # an error that stops the program immediately
@@ -323,7 +309,6 @@ database       # a system that keeps data for queries
 query          # a request to a database for specified data
 transaction    # a group of operations that completes as one unit
 migration      # a recorded change to the structure of a database
-row            # one record in a table
 column         # one named field in each row of a table
 table          # a set of rows that have the same columns
 auth           # the checks of who a user is and what they may do
@@ -339,7 +324,7 @@ secret         # a value that must not be shown
 throttle       # to limit how often something runs
 
 # work
-test           # code that checks that other code is correct
+test           # code that checks that other code is correct; STE approves the noun, and the verb is a technical verb
 assert         # to stop with an error on an incorrect condition
 fixture        # the fixed data that a test starts with
 mock           # a test object that replaces the usual one
@@ -351,7 +336,6 @@ refactor       # to change the structure of code, not its result
 commit         # a recorded set of changes to a repository
 merge          # to join the changes of two branches
 diff           # the list of changed lines between two versions
-patch          # a file of changes to apply to text
 repository     # the storage of a project and all its versions
 branch         # an isolated line of commits in a repository
 changelog      # a file that lists the changes in each release

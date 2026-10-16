@@ -26,7 +26,6 @@ commonjs       # the module system of Node.js before ESM
 package        # a directory of code with a package.json file
 generic        # a definition with a parameter that is a type
 enum           # a type with a fixed set of named values
-interface      # a type that lists the properties an object has
 tuple          # an array type with fixed length and item types
 union          # a type that is one of its parts
 intersection   # a type with the properties of all its parts

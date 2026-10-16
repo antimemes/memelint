@@ -14,7 +14,6 @@ header         # a file of declarations that other files include
 preprocessor   # the step that expands macros before the compiler runs
 linker         # the program that joins compiled objects into one binary
 malloc         # the function that allocates memory from the heap
-free           # to release memory that malloc allocated
 buffer         # a memory block that holds data for a time
 segfault       # a crash caused by access to memory not permitted
 const          # a qualifier for a value that cannot change

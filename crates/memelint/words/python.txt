@@ -9,7 +9,6 @@ decorator      # a function that wraps a definition to change it
 tuple          # a fixed sequence of values that cannot change
 dict           # the Python type that maps keys to values
 list           # the Python type of a sequence that can change
-set            # the Python type that holds each item one time
 generator      # a function that gives values one at a time
 comprehension  # an expression that builds a collection from a loop
 module         # a Python file that code can import

@@ -9,7 +9,6 @@ channel        # a typed pipe that goroutines send values through
 slice          # a view into a part of an array
 struct         # a type that groups named fields together
 receiver       # the value that a method is called on
-interface      # a type that is a set of method signatures
 package        # a directory of Go files that compile together
 module         # a set of packages with one version
 pointer        # a variable that holds the address of a value

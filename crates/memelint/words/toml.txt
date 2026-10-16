@@ -6,7 +6,6 @@
 
 table          # a named group of keys and values
 key            # the name on the left of the = sign
-value          # the data on the right of the = sign
 array          # a list of values in square brackets
 inline         # written on one line in curly brackets
 string         # a text value in quotation marks

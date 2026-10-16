@@ -5,7 +5,6 @@
 # a bundled list".
 
 class          # a template for the fields and methods of objects
-interface      # a type that lists methods a class must give
 bean           # an object that a framework makes and controls
 jar            # a file that holds compiled Java classes
 jvm            # the machine that runs Java bytecode

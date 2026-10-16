@@ -39,6 +39,8 @@ We examined these points against 566,000 comments of Python, Rust, Go and JavaSc
 
 A word that is not correct in one point can be a technical name in one project. Put it in the `words` of that project, not in a bundled list.
 
+The meaning is for the person who examines the list. memelint checks words, not meanings: a listed word is accepted in each sentence that has it.
+
 ## Words of one directory
 
 In a repository with many packages, each directory can have its words. Name the files with a glob:

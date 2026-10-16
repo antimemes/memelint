@@ -26,7 +26,6 @@ vec            # an array type that can increase in length
 slice          # a reference to a part of a sequence
 tuple          # a fixed sequence of values of mixed types
 option         # the type of a value that can be missing
-result         # a type that holds a value, else an error
 panic          # to stop the thread with an error
 unwrap         # to get the inner value, and panic if none
 derive         # to let the compiler write the trait methods

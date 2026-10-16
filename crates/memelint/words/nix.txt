@@ -18,9 +18,6 @@ fetcher        # a function that downloads a source for a build
 tarball        # a tar file that holds many files
 sandbox        # the closed environment where Nix runs a build
 builder        # the program that runs the build of a derivation
-output         # a path in /nix/store that a build makes
-input          # an external source that a flake uses
-lock           # the file that records the versions of all inputs
 rebuild        # to build and apply the system configuration again
 channel        # a branch of nixpkgs that changes with time
 nix            # the purely functional package manager
