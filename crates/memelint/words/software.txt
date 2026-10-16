@@ -47,6 +47,29 @@ yaml
 toml
 markdown
 markup
+checkpoint
+collision
+counter
+dataset
+field
+id
+immutable
+malformed
+mutable
+nested
+node
+normalize
+nullable
+numeric
+scalar
+seed
+serializer
+snapshot
+subtree
+tree
+union
+validate
+validator
 
 # code
 argument
@@ -89,6 +112,50 @@ template
 trait
 type
 annotation
+adapter
+alias
+arg
+attribute
+callable
+caller
+consumer
+declare
+derive
+deterministic
+eval
+fallback
+global
+handler
+infer
+initialize
+instance
+invoke
+language
+lazy
+lifecycle
+native
+nonzero
+param
+passthrough
+placeholder
+print
+producer
+provider
+qualifier
+reader
+receiver
+ref
+resolve
+resolver
+sentinel
+signature
+stdlib
+subclass
+untyped
+var
+variant
+wrapper
+writer
 
 # text
 delimiter
@@ -108,6 +175,16 @@ encode
 decode
 serialize
 deserialize
+css
+html
+line
+prefix
+scanner
+section
+substring
+suffix
+text
+trailing
 
 # building and running
 binary
@@ -145,6 +222,16 @@ command
 cli
 api
 sdk
+bootstrap
+entrypoint
+env
+executable
+framework
+loader
+pin
+standalone
+vendor
+workspace
 
 # system
 allocate
@@ -195,6 +282,26 @@ channel
 event
 listener
 dispatch
+child
+cmd
+console
+crash
+cwd
+dir
+exec
+fork
+launcher
+logger
+parent
+pool
+root
+startup
+storage
+subprocess
+symlink
+tenant
+user
+worker
 
 # network and web
 http
@@ -226,6 +333,18 @@ migration
 row
 column
 table
+auth
+backoff
+bearer
+body
+message
+mirror
+network
+offline
+online
+protocol
+secret
+throttle
 
 # work
 test
@@ -248,3 +367,17 @@ changelog
 readme
 license
 todo
+allowlist
+checkout
+coverage
+docs
+edit
+harness
+metrics
+migrate
+repo
+rev
+revision
+software
+spec
+typecheck

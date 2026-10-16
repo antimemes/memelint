@@ -22,3 +22,9 @@ input
 lock
 rebuild
 channel
+nix
+devshell
+attr
+attrs
+pure
+impure
