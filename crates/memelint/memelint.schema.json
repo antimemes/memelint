@@ -36,6 +36,10 @@
           "default-word-lists": {
             "description": "Use the bundled list of this language for its files. Default: the top-level value.",
             "type": "boolean"
+          },
+          "check": {
+            "description": "Examine the files of this language. Default: true for code, false for prose documents such as Markdown.",
+            "type": "boolean"
           }
         }
       }

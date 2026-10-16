@@ -10,6 +10,6 @@ Rust, Python, JavaScript, TypeScript, Go, C, Java, Nix, TOML and Markdown are co
 
 These are the grammar files that Neovim and nixpkgs make. The Nix package sets `MEMELINT_GRAMMARS` to all the grammars in nixpkgs. When a file has no grammar, memelint does not examine it, and gives a note at the end.
 
-A `[languages.<name>]` table has the keys `words`, `word-lists`, `default-word-lists` and `rules`, for the files of that language.
+A `[languages.<name>]` table has the keys `check`, `words`, `word-lists`, `default-word-lists` and `rules`, for the files of that language.
 
-Markdown files are prose. memelint reads their paragraphs, headings and table cells, and not their code blocks.
+Markdown files are prose. memelint reads their paragraphs, headings and table cells, and not their code blocks. When memelint walks a directory, it does not examine Markdown files, unless `[languages.markdown]` has `check = true`. It examines a file that you name on the command line, for example `memelint check README.md`.

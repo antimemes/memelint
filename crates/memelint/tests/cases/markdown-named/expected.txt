@@ -1,0 +1,4 @@
+notes.md:1:10: error: 'notes' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+notes.md:3:1: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+1 files, 2 comments, 2 errors, 0 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix --unsafe-fixes

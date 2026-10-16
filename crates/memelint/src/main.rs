@@ -121,6 +121,12 @@ fn run_check(
         let Some(grammar) = grammars.for_path(path) else {
             continue;
         };
+        // A file given on the command line is examined when its language is
+        // off. The files of a directory are not.
+        let named = roots.iter().any(|r| r == path);
+        if !named && !config.checks(&grammar.name, grammar.prose) {
+            continue;
+        }
         let Ok(source) = std::fs::read_to_string(path) else {
             continue; // not UTF-8, thus not a source file
         };

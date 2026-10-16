@@ -17,6 +17,9 @@
 //!
 //! [languages.rust.rules]
 //! "1.6" = "off"
+//!
+//! [languages.markdown]                         # prose is off by default
+//! check = true
 //! ```
 //!
 //! An entry of `word-lists` is a path, a URL, or the name of a bundled list.
@@ -101,6 +104,9 @@ pub struct Language {
     pub word_lists: Vec<String>,
     /// Use the bundled list of this language. Default: the top-level value.
     pub default_word_lists: Option<bool>,
+    /// Examine the files of this language. Default: on for code, off for
+    /// prose documents, for example Markdown.
+    pub check: Option<bool>,
 }
 
 fn yes() -> bool {
@@ -141,6 +147,15 @@ impl Config {
             (Profile::Basic, "1.6" | "6.3") => Severity::Warning,
             _ => Severity::Error,
         }
+    }
+
+    /// Are the files of `language` examined? Code is, and a prose document
+    /// (`prose`) is not, unless the configuration turns the language on or off.
+    pub fn checks(&self, language: &str, prose: bool) -> bool {
+        self.languages
+            .get(language)
+            .and_then(|l| l.check)
+            .unwrap_or(!prose)
     }
 
     /// The accepted words for files of `language`: the bundled lists, then
@@ -279,6 +294,7 @@ mod tests {
             words = ["frobnicate"]
             word-lists = ["rust.txt"]
             default-word-lists = true
+            check = true
 
             [languages.rust.rules]
             "1.6" = "warning"
@@ -294,7 +310,20 @@ mod tests {
         assert_eq!(c.languages["rust"].word_lists, ["rust.txt"]);
         assert_eq!(c.languages["rust"].default_word_lists, Some(true));
         assert_eq!(c.languages["rust"].rules["1.6"], Severity::Warning);
+        assert_eq!(c.languages["rust"].check, Some(true));
         assert_eq!(c.urls(), ["https://example.com/w.txt"]);
+    }
+
+    #[test]
+    fn check_defaults_to_code_only() {
+        let c = Config::default();
+        assert!(c.checks("python", false));
+        assert!(!c.checks("markdown", true));
+        // The configuration turns a language on or off.
+        let c = config("[languages.markdown]\ncheck = true");
+        assert!(c.checks("markdown", true));
+        let c = config("[languages.python]\ncheck = false");
+        assert!(!c.checks("python", false));
     }
 
     #[test]
@@ -433,7 +462,13 @@ mod schema {
         let language = &schema["properties"]["languages"]["additionalProperties"];
         assert_eq!(
             keys(language),
-            ["default-word-lists", "rules", "word-lists", "words"]
+            [
+                "check",
+                "default-word-lists",
+                "rules",
+                "word-lists",
+                "words"
+            ]
         );
         // Each `rules` table refers to the one definition. Its ids are the
         // rules that give findings.
@@ -468,6 +503,7 @@ mod schema {
             words = []
             word-lists = []
             default-word-lists = false
+            check = true
             [languages.rust.rules]
             "1.1" = "off"
         "#;

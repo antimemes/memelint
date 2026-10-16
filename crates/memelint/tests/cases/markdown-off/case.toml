@@ -1,0 +1,2 @@
+# Markdown is not examined when the configuration does not turn it on.
+worktree = "docs"

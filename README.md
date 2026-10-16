@@ -83,7 +83,7 @@ profile = "basic"       # "strict" (the default) makes each finding an error.
 
 ## Languages
 
-memelint lints all languages that have a [tree-sitter grammar](https://tree-sitter.github.io/tree-sitter/#parsers). Rust, Python, JavaScript, TypeScript, Go, C, Java, Nix, TOML and Markdown are compiled in. The Nix package has each grammar that nixpkgs has. Other installations load `<name>.so` grammar files, the files that Neovim uses, from a directory.
+memelint lints all languages that have a [tree-sitter grammar](https://tree-sitter.github.io/tree-sitter/#parsers). Rust, Python, JavaScript, TypeScript, Go, C, Java, Nix, TOML and Markdown are compiled in. The Nix package has each grammar that nixpkgs has. Other installations load `<name>.so` grammar files, the files that Neovim uses, from a directory. Markdown is off until `[languages.markdown]` has `check = true`.
 
 ## Your words
 

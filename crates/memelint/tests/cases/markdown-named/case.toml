@@ -1,0 +1,3 @@
+# A Markdown file given on the command line is examined.
+worktree = "docs"
+args = ["notes.md"]
