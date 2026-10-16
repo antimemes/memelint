@@ -58,18 +58,36 @@ impl Allowlist {
     }
 
     /// The word, or a regular inflection of it: the plural, or the -s, -ed
-    /// and -ing forms of a technical verb.
+    /// and -ing forms of a technical verb. The regular spelling rules apply.
+    /// `-es` comes after `s`, `x`, `z`, `ch` and `sh`. `-d` comes after `e`.
+    /// `-ies` and `-ied` come after a `y` that is removed. `-s` does not
+    /// come after `s`, `x`, `z`, `ch` or `sh`.
     pub fn allows(&self, word: &str) -> bool {
         if self.0.contains(word) {
             return true;
         }
-        ["es", "s", "ed", "d", "ing"].iter().any(|s| {
-            word.strip_suffix(s)
-                .is_some_and(|stem| self.0.contains(stem))
-        }) || ["ies", "ied"].iter().any(|s| {
-            word.strip_suffix(s)
-                .is_some_and(|stem| self.0.contains(&format!("{stem}y")))
-        })
+        let listed = |stem: &str| self.0.contains(stem);
+        let sibilant = |stem: &str| {
+            ["s", "x", "z", "ch", "sh"]
+                .iter()
+                .any(|e| stem.ends_with(e))
+        };
+        word.strip_suffix("es")
+            .is_some_and(|stem| sibilant(stem) && listed(stem))
+            || word
+                .strip_suffix('s')
+                .is_some_and(|stem| !sibilant(stem) && listed(stem))
+            || word
+                .strip_suffix("ed")
+                .is_some_and(|stem| !stem.ends_with('e') && listed(stem))
+            || word
+                .strip_suffix('d')
+                .is_some_and(|stem| stem.ends_with('e') && listed(stem))
+            || word.strip_suffix("ing").is_some_and(listed)
+            || ["ies", "ied"].iter().any(|suffix| {
+                word.strip_suffix(suffix)
+                    .is_some_and(|stem| listed(&format!("{stem}y")))
+            })
     }
 }
 
@@ -259,28 +277,28 @@ fn one_alternative(senses: &[Sense]) -> Option<&str> {
     }
 }
 
-/// The alternative `alt` of `lemma` in the inflection of `word`, for example
-/// `lifted` for `hoisted`. None when no inflection of `alt` is approved.
-fn inflected_alternative(
-    word: &str,
-    lemma: &str,
-    alt: &str,
-    dict: &Dictionary,
-    allow: &Allowlist,
-) -> Option<String> {
-    let candidates = if word == lemma {
-        vec![alt.to_string()]
-    } else {
-        let suffix = word.strip_prefix(lemma)?;
-        vec![
-            format!("{alt}{suffix}"),
-            format!("{alt}e{suffix}"),
-            format!("{}{suffix}", alt.strip_suffix('e').unwrap_or(alt)),
-        ]
+/// The alternative with the inflection of `word`, for example `lifted` for
+/// `hoisted`. Only a form that the dictionary lists is accepted. Thus there
+/// is no fix when the regular spelling rules do not give the form.
+fn inflected_alternative(word: &str, lemma: &str, alt: &str, dict: &Dictionary) -> Option<String> {
+    let in_dictionary = |text: &str| {
+        text.split_whitespace()
+            .all(|w| !dict.approved_pos(w).is_empty())
     };
-    candidates
-        .into_iter()
-        .find(|c| approved_text(c, dict, allow))
+    if word == lemma {
+        return in_dictionary(alt).then(|| alt.to_string());
+    }
+    let suffix = word.strip_prefix(lemma)?;
+    let mut candidates = vec![
+        format!("{alt}{suffix}"),
+        format!("{alt}e{suffix}"),
+        format!("{}{suffix}", alt.strip_suffix('e').unwrap_or(alt)),
+    ];
+    // `-es` after `s`, `x`, `z`, `ch` and `sh` is `-s` after other letters.
+    if suffix == "es" {
+        candidates.push(format!("{alt}s"));
+    }
+    candidates.into_iter().find(|c| in_dictionary(c))
 }
 
 /// Context rule for a word that is approved as some parts of speech and
@@ -569,8 +587,8 @@ fn judge(
     }
 
     if let Some((lemma, senses)) = dict.unapproved_lemma(word) {
-        let replacement = one_alternative(senses)
-            .and_then(|alt| inflected_alternative(word, lemma, alt, dict, allow));
+        let replacement =
+            one_alternative(senses).and_then(|alt| inflected_alternative(word, lemma, alt, dict));
         return verdict("1.1", unapproved_message(word, lemma, senses), replacement);
     }
 
@@ -621,6 +639,7 @@ mod tests {
           {"lemma": "zorch up", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
           {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]},
           {"lemma": "glimb", "pos": "n", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
+          {"lemma": "blish", "pos": "v", "status": "unapproved", "alternatives": [{"word": "frob", "pos": "v"}]},
           {"lemma": "plonk", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "frob", "pos": "v"}]}
         ]}"#,
         )
@@ -730,7 +749,11 @@ mod tests {
 
     /// The fix of the one finding of `rule` in `text`.
     fn fix_of(text: &str, rule: &str) -> Option<Fix> {
-        let findings = check(&comment(text), &dict(), &Allowlist::default());
+        fix_of_allowed(text, rule, "")
+    }
+
+    fn fix_of_allowed(text: &str, rule: &str, allow: &str) -> Option<Fix> {
+        let findings = check(&comment(text), &dict(), &Allowlist::parse(allow));
         let mut hits = findings.into_iter().filter(|f| f.rule == rule);
         let fix = hits.next().expect("a finding of the rule").fix;
         assert!(hits.next().is_none(), "one finding of the rule");
@@ -805,6 +828,38 @@ mod tests {
             fix_of("The gantry hoisted.", "1.1").unwrap().replacement,
             "lifted"
         );
+    }
+
+    #[test]
+    fn alternative_fix_inflects_the_alternative() {
+        // `blishes` is `blish` + `es`. The form of the alternative `frob` is
+        // `frobs`, which the dictionary lists, and not `frobes`.
+        assert_eq!(
+            fix_of("The gantry blishes.", "1.1").unwrap().replacement,
+            "frobs"
+        );
+        // The allowlist does not make a form approved, also when it has the
+        // alternative.
+        assert_eq!(
+            fix_of_allowed("The gantry blishes.", "1.1", "frob")
+                .unwrap()
+                .replacement,
+            "frobs"
+        );
+        // `frobbed` has `bb`, which the rules do not give. No fix is better
+        // than an incorrect fix.
+        assert_eq!(fix_of("The gantry blished.", "1.1"), None);
+    }
+
+    #[test]
+    fn allowlist_inflections_follow_spelling_rules() {
+        let allow = Allowlist::parse("set box frobe gantry");
+        for word in ["sets", "boxes", "frobed", "gantries", "gantried", "boxing"] {
+            assert!(allow.allows(word), "{word}");
+        }
+        for word in ["setes", "setd", "frobeed", "boxs"] {
+            assert!(!allow.allows(word), "{word}");
+        }
     }
 
     #[test]
