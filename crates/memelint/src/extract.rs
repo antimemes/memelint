@@ -16,6 +16,10 @@ pub struct Line {
     pub line: usize,
     /// 1-based column of the first character of `text`.
     pub col: usize,
+    /// Byte offset in the source of the first character of `text`. The
+    /// markup that becomes spaces keeps its byte length. Thus `byte + i` is
+    /// the source offset of each character `text[i..]` that is not a space.
+    pub byte: usize,
     pub text: String,
 }
 
@@ -48,6 +52,23 @@ impl Comment {
         let last = self.lines.last().expect("comment has lines");
         (last.line, last.col + last.text.chars().count())
     }
+
+    /// Map a byte range of `text()` to a byte range of the source. The range
+    /// must be on one line; if it is not, None.
+    pub fn source_range(&self, start: usize, end: usize) -> Option<(usize, usize)> {
+        let mut line_start = 0;
+        for l in &self.lines {
+            let line_end = line_start + l.text.len();
+            if start <= line_end {
+                if end < start || end > line_end {
+                    return None;
+                }
+                return Some((l.byte + (start - line_start), l.byte + (end - line_start)));
+            }
+            line_start = line_end + 1;
+        }
+        None
+    }
 }
 
 /// Get the prose from `source`: the comments of source code, or the
@@ -63,36 +84,43 @@ pub fn extract(grammar: &Grammar, source: &str) -> Vec<Comment> {
 
     let mut raw: Vec<RawComment> = Vec::new();
     if grammar.prose {
-        collect_prose(tree.root_node(), source, &mut raw);
+        collect_prose(grammar, tree.root_node(), source, &mut raw);
     } else {
-        collect(tree.root_node(), source, &mut raw);
+        collect(grammar, tree.root_node(), source, &mut raw);
     }
     merge_adjacent(&mut raw);
     raw.iter().filter_map(clean).collect()
 }
 
+/// Is the text of this syntax part prose? Comments and docstrings in code,
+/// and paragraphs, headings and table cells in prose documents are prose.
+pub fn is_prose(grammar: &Grammar, node: Node) -> bool {
+    if grammar.prose {
+        matches!(
+            node.kind(),
+            "paragraph" | "atx_heading" | "setext_heading" | "pipe_table_cell"
+        )
+    } else {
+        node.kind().contains("comment") || is_docstring(node)
+    }
+}
+
 /// The paragraphs, headings and table cells of a Markdown document. Code
 /// blocks and HTML blocks are not prose.
-fn collect_prose(node: Node, source: &str, out: &mut Vec<RawComment>) {
-    match node.kind() {
-        "paragraph" | "atx_heading" | "setext_heading" | "pipe_table_cell" => {
-            let text = source[node.byte_range()].trim_end_matches(['\n', '\r']);
-            let line = node.start_position().row + 1;
-            out.push(RawComment {
-                line,
-                col: node.start_position().column + 1,
-                end_line: line + text.matches('\n').count(),
-                text: text.to_string(),
-                is_line: false,
-            });
-        }
-        "fenced_code_block" | "indented_code_block" | "html_block" => {}
-        _ => {
-            let mut cursor = node.walk();
-            for child in node.children(&mut cursor) {
-                collect_prose(child, source, out);
-            }
-        }
+fn collect_prose(grammar: &Grammar, node: Node, source: &str, out: &mut Vec<RawComment>) {
+    if is_prose(grammar, node) {
+        out.push(RawComment::new(node, source, false));
+        return;
+    }
+    if matches!(
+        node.kind(),
+        "fenced_code_block" | "indented_code_block" | "html_block"
+    ) {
+        return;
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        collect_prose(grammar, child, source, out);
     }
 }
 
@@ -101,28 +129,42 @@ struct RawComment {
     col: usize,
     end_line: usize,
     text: String,
+    /// The source byte offset of the start of each line of `text`.
+    starts: Vec<usize>,
     /// A line comment (`//`, `#`), not a block comment or a docstring.
     is_line: bool,
 }
 
-fn collect(node: Node, source: &str, out: &mut Vec<RawComment>) {
-    let kind = node.kind();
-    if kind.contains("comment") || is_docstring(node) {
+impl RawComment {
+    fn new(node: Node, source: &str, is_line: bool) -> Self {
         // Some grammars include the line break in a line comment.
         let text = source[node.byte_range()].trim_end_matches(['\n', '\r']);
         let line = node.start_position().row + 1;
-        out.push(RawComment {
+        let base = node.start_byte();
+        let starts = std::iter::once(base)
+            .chain(text.match_indices('\n').map(|(i, _)| base + i + 1))
+            .collect();
+        RawComment {
             line,
             col: node.start_position().column + 1,
             end_line: line + text.matches('\n').count(),
             text: text.to_string(),
-            is_line: kind.contains("comment") && !text.starts_with("/*"),
-        });
+            starts,
+            is_line,
+        }
+    }
+}
+
+fn collect(grammar: &Grammar, node: Node, source: &str, out: &mut Vec<RawComment>) {
+    if is_prose(grammar, node) {
+        let is_line =
+            node.kind().contains("comment") && !source[node.byte_range()].starts_with("/*");
+        out.push(RawComment::new(node, source, is_line));
         return;
     }
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
-        collect(child, source, out);
+        collect(grammar, child, source, out);
     }
 }
 
@@ -156,6 +198,7 @@ fn merge_adjacent(raw: &mut Vec<RawComment>) {
                 prev.text.push('\n');
                 prev.text.push_str(&c.text);
                 prev.end_line = c.end_line;
+                prev.starts.extend(c.starts);
             }
             _ => merged.push(c),
         }
@@ -222,6 +265,7 @@ fn clean(raw: &RawComment) -> Option<Comment> {
         lines.push(Line {
             line: line_no,
             col,
+            byte: raw.starts[i] + stripped,
             text: blanked.into_owned(),
         });
     }
@@ -325,5 +369,63 @@ mod tests {
         assert_eq!(c.position(0), (3, 7));
         let then = c.text().find("Then").unwrap();
         assert_eq!(c.position(then), (4, 7));
+    }
+
+    fn grammar(ext: &str) -> Grammar {
+        crate::grammars::Grammars::new(None)
+            .for_path(Path::new(&format!("x.{ext}")))
+            .unwrap()
+    }
+
+    #[test]
+    fn source_ranges_map_back_to_source() {
+        // Merged line comments.
+        let src = "x = 1\n\n    # Lift the arm.\n    # Then stop.\n";
+        let c = &extract(&grammar("py"), src)[0];
+        let text = c.text();
+        let then = text.find("Then").unwrap();
+        let (a, b) = c.source_range(then, then + 4).unwrap();
+        assert_eq!(&src[a..b], "Then");
+
+        // A block comment. Its subsequent lines start with ` * `.
+        let src = "/**\n * Start the pump.\n * Then wait.\n */\nfunction f() {}\n";
+        let c = &extract(&grammar("js"), src)[0];
+        let text = c.text();
+        let wait = text.find("wait").unwrap();
+        let (a, b) = c.source_range(wait, wait + 4).unwrap();
+        assert_eq!(&src[a..b], "wait");
+
+        // A range across a line break has no source range.
+        let pump = text.find("pump.").unwrap();
+        assert_eq!(c.source_range(pump, wait), None);
+    }
+
+    #[test]
+    fn is_prose_picks_comments_and_paragraphs() {
+        fn walk(grammar: &Grammar, node: Node, out: &mut Vec<(String, bool)>) {
+            out.push((node.kind().to_string(), is_prose(grammar, node)));
+            let mut cursor = node.walk();
+            for child in node.children(&mut cursor) {
+                walk(grammar, child, out);
+            }
+        }
+        fn kinds(grammar: &Grammar, src: &str) -> Vec<(String, bool)> {
+            let mut parser = Parser::new();
+            parser.set_language(&grammar.language).unwrap();
+            let tree = parser.parse(src, None).unwrap();
+            let mut out = Vec::new();
+            walk(grammar, tree.root_node(), &mut out);
+            out
+        }
+        fn prose(kinds: &[(String, bool)], kind: &str) -> bool {
+            kinds.iter().find(|(k, _)| k == kind).expect(kind).1
+        }
+
+        let got = kinds(&grammar("rs"), "// Turn the dial.\nfn f() {}\n");
+        assert!(prose(&got, "line_comment"));
+        assert!(!prose(&got, "function_item"));
+
+        let got = kinds(&grammar("md"), "Turn the dial.\n");
+        assert!(prose(&got, "paragraph"));
     }
 }

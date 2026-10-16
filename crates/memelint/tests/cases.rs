@@ -10,12 +10,14 @@
 //! Before the run, we make a copy of the worktree in a work directory. We put
 //! the files of the `overlay/` directory of the case, if there is one, on
 //! top. Thus some cases can lint the same worktree with different allowlists
-//! or configuration. The checker runs with the dictionary in
+//! or configuration. When the case has a `fixed/` directory, each file in it
+//! must be the same as the file that `check --fix` left in the work
+//! directory. The checker runs with the dictionary in
 //! `tests/dict.json`. Its words are not English, and no part of the
 //! ASD-STE100 dictionary is in these files.
 //!
-//! `UPDATE_EXPECT=1 cargo test --test cases` writes each `expected.txt` again
-//! from the output. Examine the diff before you commit it.
+//! `UPDATE_EXPECT=1 cargo test --test cases` writes each `expected.txt` and
+//! each `fixed/` file again from the output. Examine the diff before you commit it.
 
 use std::fs;
 use std::path::Path;
@@ -124,6 +126,27 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
     if output.status.code() != Some(want) {
         return Err(format!("exit status {:?}, expected {want}", output.status.code()).into());
     }
+
+    let fixed = case_dir.join("fixed");
+    if fixed.is_dir() {
+        for rel in files_under(&fixed, &fixed)? {
+            let expected_path = fixed.join(&rel);
+            let actual = fs::read_to_string(work.join(&rel))?;
+            if std::env::var_os("UPDATE_EXPECT").is_some() {
+                fs::write(&expected_path, &actual)?;
+            }
+            let expected = fs::read_to_string(&expected_path)?;
+            if actual != expected {
+                return Err(format!(
+                    "{} differs from {}:\n{}",
+                    rel.display(),
+                    expected_path.display(),
+                    diff(&expected, &actual)
+                )
+                .into());
+            }
+        }
+    }
     Ok(())
 }
 
@@ -181,4 +204,19 @@ fn readme_example(tests: &Path) -> Result<(), Failed> {
         }
     }
     Ok(())
+}
+
+/// The files below `dir`, as paths that start at `root`.
+fn files_under(dir: &Path, root: &Path) -> std::io::Result<Vec<std::path::PathBuf>> {
+    let mut out = Vec::new();
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        if entry.file_type()?.is_dir() {
+            out.extend(files_under(&entry.path(), root)?);
+        } else {
+            out.push(entry.path().strip_prefix(root).unwrap().to_path_buf());
+        }
+    }
+    out.sort();
+    Ok(out)
 }

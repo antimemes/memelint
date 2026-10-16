@@ -15,6 +15,8 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 The exit code is 1 when there is an error.
 
+`memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full.
+
 ## Installing
 
 ASD-STE100 is copyrighted, thus the binary does not contain its dictionary. The first run downloads the PDF from ASD and makes the vocabulary in `~/.cache/memelint/`. The Nix package makes it when it builds.

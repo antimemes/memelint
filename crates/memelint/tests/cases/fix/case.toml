@@ -1,0 +1,2 @@
+worktree = "findings"
+args = ["--fix"]

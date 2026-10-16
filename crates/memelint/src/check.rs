@@ -19,6 +19,19 @@ pub struct Finding {
     pub line: usize,
     pub col: usize,
     pub message: String,
+    /// A replacement that removes the finding, when there is a mechanical one.
+    pub fix: Option<Fix>,
+}
+
+/// A replacement of a byte range of the source file.
+#[derive(Debug, PartialEq, Clone)]
+pub struct Fix {
+    pub start: usize,
+    pub end: usize,
+    pub replacement: String,
+    /// A safe fix keeps the meaning: a contraction written in full. An unsafe
+    /// fix replaces a word with the one alternative that the spec gives.
+    pub safe: bool,
 }
 
 /// Words that the project examined and accepted: technical names and verbs
@@ -138,6 +151,85 @@ fn is_contraction(word: &str) -> bool {
                 | "where's"
                 | "when's"
         )
+}
+
+/// The contraction written in full, for example `will not` for `won't`.
+/// None for the `'s` and `'d` forms: `it's` is `it is` or `it has`, and
+/// `we'd` is `we would` or `we had`.
+fn expand_contraction(word: &str) -> Option<String> {
+    let w = word.replace('’', "'");
+    let (base, full) = [
+        ("n't", "not"),
+        ("'re", "are"),
+        ("'ll", "will"),
+        ("'ve", "have"),
+        ("'m", "am"),
+    ]
+    .iter()
+    .find_map(|(suffix, full)| w.strip_suffix(suffix).map(|base| (base, *full)))?;
+    if base.is_empty() {
+        return None;
+    }
+    Some(match (base, full) {
+        ("wo", "not") => "will not".to_string(),
+        ("ca", "not") => "cannot".to_string(),
+        ("sha", "not") => "shall not".to_string(),
+        _ => format!("{base} {full}"),
+    })
+}
+
+/// Each word of `text` is approved or in the allowlist.
+fn approved_text(text: &str, dict: &Dictionary, allow: &Allowlist) -> bool {
+    text.split_whitespace()
+        .all(|w| !dict.approved_pos(w).is_empty() || allow.allows(w))
+}
+
+/// `replacement` with an upper-case first letter when `original` has one.
+fn recase(original: &str, replacement: &str) -> String {
+    if !original.chars().next().is_some_and(char::is_uppercase) {
+        return replacement.to_string();
+    }
+    let mut chars = replacement.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
+}
+
+/// The byte range in `text` of the word of `tok`: the token without the
+/// quotation marks and parentheses at its ends, as in `word_of`.
+fn word_range(text: &str, tok: &Token) -> (usize, usize) {
+    let raw = text[tok.start..]
+        .split(char::is_whitespace)
+        .next()
+        .unwrap_or("");
+    let not_word = |c: char| !c.is_alphanumeric();
+    let lead = raw.len() - raw.trim_start_matches(not_word).len();
+    let start = tok.start + lead;
+    (start, start + raw.trim_matches(not_word).len())
+}
+
+/// The fix for a contraction: the words in full. There is no fix when a
+/// word is not approved, or when the token is on more than one line.
+fn contraction_fix(
+    text: &str,
+    tok: &Token,
+    comment: &Comment,
+    dict: &Dictionary,
+    allow: &Allowlist,
+) -> Option<Fix> {
+    let full = expand_contraction(tok.word.as_deref()?)?;
+    if !approved_text(&full, dict, allow) {
+        return None;
+    }
+    let (start, end) = word_range(text, tok);
+    let (src_start, src_end) = comment.source_range(start, end)?;
+    Some(Fix {
+        start: src_start,
+        end: src_end,
+        replacement: recase(&text[start..end], &full),
+        safe: true,
+    })
 }
 
 /// Context rule for a word that is approved as some parts of speech and
@@ -270,6 +362,7 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
             line,
             col,
             message,
+            fix: None,
         }
     };
 
@@ -298,11 +391,13 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
         let Some(word) = &tok.word else { continue };
 
         if is_contraction(word) {
-            findings.push(finding(
+            let mut f = finding(
                 "4.2",
                 tok.start,
                 format!("'{word}' is a contraction; write the words in full"),
-            ));
+            );
+            f.fix = contraction_fix(&text, tok, comment, dict, allow);
+            findings.push(f);
             continue;
         }
         // Possessive: `the pump's inlet` is about the `pump`.
@@ -427,6 +522,12 @@ mod tests {
           {"lemma": "is", "pos": "v", "status": "approved", "forms": ["is"]},
           {"lemma": "to", "pos": "prep", "status": "approved", "forms": ["to"]},
           {"lemma": "wide", "pos": "adj", "status": "approved", "forms": ["wide"]},
+          {"lemma": "do", "pos": "v", "status": "approved", "forms": ["do", "does", "did"]},
+          {"lemma": "be", "pos": "v", "status": "approved", "forms": ["be", "are"]},
+          {"lemma": "have", "pos": "v", "status": "approved", "forms": ["have", "has", "had"]},
+          {"lemma": "will", "pos": "v", "status": "approved", "forms": ["will"]},
+          {"lemma": "cannot", "pos": "v", "status": "approved", "forms": ["cannot"]},
+          {"lemma": "not", "pos": "adv", "status": "approved", "forms": ["not"]},
           {"lemma": "hoist", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
           {"lemma": "zorch up", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
           {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]}
@@ -435,15 +536,23 @@ mod tests {
         .unwrap()
     }
 
+    /// A comment with `text` as its source. Thus `byte` is the offset of
+    /// each line in `text`.
     fn comment(text: &str) -> Comment {
+        let mut byte = 0;
         Comment {
             lines: text
                 .split('\n')
                 .enumerate()
-                .map(|(i, t)| Line {
-                    line: i + 1,
-                    col: 1,
-                    text: t.to_string(),
+                .map(|(i, t)| {
+                    let line = Line {
+                        line: i + 1,
+                        col: 1,
+                        byte,
+                        text: t.to_string(),
+                    };
+                    byte += t.len() + 1;
+                    line
                 })
                 .collect(),
         }
@@ -526,6 +635,63 @@ mod tests {
         assert!(messages("The gantry's frob is wide.", "").is_empty());
         // Identifiers, acronyms, numbers and one-letter tokens are not words.
         assert!(messages("Lift gantry_id to GANTRY 2 (frob `x`).", "").is_empty());
+    }
+
+    /// The fix of the one 4.2 finding in `text`.
+    fn contraction_fix_of(text: &str) -> Option<Fix> {
+        let findings = check(&comment(text), &dict(), &Allowlist::default());
+        let mut hits = findings.into_iter().filter(|f| f.rule == "4.2");
+        let fix = hits.next().expect("a contraction finding").fix;
+        assert!(hits.next().is_none(), "one contraction finding");
+        fix
+    }
+
+    #[test]
+    fn contraction_fix_writes_the_words_in_full() {
+        let text = "Don't frob the gantry.";
+        assert_eq!(
+            contraction_fix_of(text),
+            Some(Fix {
+                start: 0,
+                end: "Don't".len(),
+                replacement: "Do not".to_string(),
+                safe: true,
+            })
+        );
+        assert_eq!(expand_contraction("doesn't").as_deref(), Some("does not"));
+        assert_eq!(expand_contraction("we’re").as_deref(), Some("we are"));
+        assert_eq!(expand_contraction("they'll").as_deref(), Some("they will"));
+        assert_eq!(expand_contraction("i've").as_deref(), Some("i have"));
+    }
+
+    #[test]
+    fn contraction_fix_excludes_quotation_marks() {
+        let text = "Frob 'won't' the gantry.";
+        let fix = contraction_fix_of(text).unwrap();
+        assert_eq!(&text[fix.start..fix.end], "won't");
+        assert_eq!(fix.replacement, "will not");
+        assert_eq!(
+            contraction_fix_of("The gantry can't lift.")
+                .unwrap()
+                .replacement,
+            "cannot"
+        );
+    }
+
+    #[test]
+    fn ambiguous_or_unapproved_contractions_get_no_fix() {
+        // `it's` is `it is` or `it has`.
+        assert_eq!(contraction_fix_of("It's wide."), None);
+        // `shall` is not in the test dictionary.
+        assert_eq!(contraction_fix_of("Frob, shan't we."), None);
+    }
+
+    #[test]
+    fn contraction_fix_on_a_later_line_maps_to_the_source() {
+        let text = "Frob the gantry.\nThe gantry doesn't lift.";
+        let fix = contraction_fix_of(text).unwrap();
+        assert_eq!(&text[fix.start..fix.end], "doesn't");
+        assert_eq!(fix.replacement, "does not");
     }
 
     #[test]

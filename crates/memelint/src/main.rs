@@ -3,6 +3,7 @@ mod config;
 mod defaults;
 mod dict;
 mod extract;
+mod fix;
 mod grammars;
 mod rules;
 
@@ -37,6 +38,10 @@ enum Command {
         /// before $MEMELINT_GRAMMARS and $XDG_DATA_HOME/memelint/grammars.
         #[arg(long)]
         grammars: Option<PathBuf>,
+        /// Write the fixes into the files: contractions in full. A file is
+        /// written only when its code parses the same before and after.
+        #[arg(long)]
+        fix: bool,
     },
     /// Download the word lists that `memelint.toml` gives as URLs into the cache.
     #[cfg(feature = "fetch")]
@@ -55,7 +60,8 @@ fn main() -> Result<()> {
             vocab,
             config,
             grammars,
-        } => run_check(paths, vocab, config, grammars),
+            fix,
+        } => run_check(paths, vocab, config, grammars, fix),
         #[cfg(feature = "fetch")]
         Command::Fetch { config } => run_fetch(config),
     }
@@ -66,6 +72,7 @@ fn run_check(
     vocab: Option<PathBuf>,
     config_path: PathBuf,
     grammar_dir: Option<PathBuf>,
+    fix: bool,
 ) -> Result<()> {
     let vocab_path = match memelint_common::locate(vocab.as_deref(), memelint_common::ASD_STE100) {
         Ok(path) => path,
@@ -95,6 +102,7 @@ fn run_check(
     }
 
     let (mut files, mut comments, mut errors, mut warnings) = (0usize, 0usize, 0usize, 0usize);
+    let (mut fixable, mut fixed, mut fixed_files) = (0usize, 0usize, 0usize);
     for entry in walk.build() {
         let entry = entry?;
         let path = entry.path();
@@ -114,25 +122,45 @@ fn run_check(
         }
         let allow = &allowlists[&grammar.name];
         let shown = path.strip_prefix("./").unwrap_or(path).display();
-        for comment in extract::extract(&grammar, &source) {
-            comments += 1;
-            for f in check::check(&comment, &dict, allow) {
-                let severity = match config.severity(f.rule, &grammar.name) {
-                    config::Severity::Off => continue,
-                    config::Severity::Error => {
-                        errors += 1;
-                        "error"
+
+        let (mut n, mut findings) = lint(&grammar, &source, &dict, allow, &config);
+        if fix {
+            let fixes: Vec<&check::Fix> = findings
+                .iter()
+                .filter_map(|(f, _)| f.fix.as_ref())
+                .collect();
+            if !fixes.is_empty() {
+                match fix::apply(&source, &fixes) {
+                    Some(after) if fix::same_code(&grammar, &source, &after) => {
+                        std::fs::write(path, &after)
+                            .with_context(|| format!("cannot write {shown}"))?;
+                        fixed += fixes.len();
+                        fixed_files += 1;
+                        // The positions of the other findings have moved.
+                        (n, findings) = lint(&grammar, &after, &dict, allow, &config);
                     }
-                    config::Severity::Warning => {
-                        warnings += 1;
-                        "warning"
-                    }
-                };
-                println!(
-                    "{shown}:{}:{}: {severity}: {} [STE {}]",
-                    f.line, f.col, f.message, f.rule
-                );
+                    _ => eprintln!("note: {shown}: the fixes would change the code; not applied"),
+                }
             }
+        } else {
+            fixable += findings.iter().filter(|(f, _)| f.fix.is_some()).count();
+        }
+        comments += n;
+        for (f, severity) in findings {
+            let severity = match severity {
+                config::Severity::Error => {
+                    errors += 1;
+                    "error"
+                }
+                _ => {
+                    warnings += 1;
+                    "warning"
+                }
+            };
+            println!(
+                "{shown}:{}:{}: {severity}: {} [STE {}]",
+                f.line, f.col, f.message, f.rule
+            );
         }
     }
 
@@ -140,6 +168,11 @@ fn run_check(
         "{files} files, {comments} comments, {errors} errors, {warnings} warnings (ASD-STE100 issue {})",
         dict.issue.map_or("?".to_string(), |i| i.to_string())
     );
+    if fix {
+        eprintln!("fixed {fixed} findings in {fixed_files} files");
+    } else if fixable > 0 {
+        eprintln!("note: {fixable} findings can be fixed with --fix");
+    }
     if !grammars.missing.is_empty() {
         let names: Vec<&str> = grammars.missing.iter().map(String::as_str).collect();
         let dirs: Vec<String> = grammars
@@ -157,6 +190,27 @@ fn run_check(
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// The number of comments in `source`, and its findings with their
+/// severities. Findings of rules that are off are not in the list.
+fn lint(
+    grammar: &grammars::Grammar,
+    source: &str,
+    dict: &dict::Dictionary,
+    allow: &check::Allowlist,
+    config: &config::Config,
+) -> (usize, Vec<(check::Finding, config::Severity)>) {
+    let comments = extract::extract(grammar, source);
+    let findings = comments
+        .iter()
+        .flat_map(|c| check::check(c, dict, allow))
+        .filter_map(|f| match config.severity(f.rule, &grammar.name) {
+            config::Severity::Off => None,
+            severity => Some((f, severity)),
+        })
+        .collect();
+    (comments.len(), findings)
 }
 
 #[cfg(feature = "fetch")]
