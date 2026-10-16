@@ -15,7 +15,7 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 The exit code is 1 when there is an error.
 
-`memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full.
+`memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full. `--unsafe-fixes` also replaces each unapproved word with the one alternative of the same part of speech; examine the diff.
 
 ## Installing
 

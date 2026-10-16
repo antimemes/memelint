@@ -13,3 +13,4 @@ sub/notes.c:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
 util.go:3:21: error: 'it's' is a contraction; write the words in full [STE 4.2]
 5 files, 10 comments, 13 errors, 0 warnings (ASD-STE100 issue 0)
 fixed 1 findings in 1 files
+note: 5 more findings can be fixed with --unsafe-fixes

@@ -9,3 +9,4 @@ main.py:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
 main.py:9:17: error: 'frobbing' is the -ing form of 'frob'; STE allows only the infinitive, imperative, past tense and past participle [STE 3.5]
 sub/notes.c:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
 6 files, 10 comments, 8 errors, 2 warnings (ASD-STE100 issue 0)
+note: 4 findings can be fixed with --fix --unsafe-fixes

@@ -4,4 +4,4 @@ foo.py:3:13: error: 'delve' is not in the STE dictionary; if it is a technical n
 foo.py:4:7: error: sentence has 28 words; the STE limit for descriptive text is 25 [STE 6.3]
 foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the infinitive, imperative, past tense and past participle [STE 3.5]
 1 files, 1 comments, 5 errors, 0 warnings (ASD-STE100 issue 0)
-note: 1 findings can be fixed with --fix
+note: 1 findings can be fixed with --fix, and 1 more with --fix --unsafe-fixes

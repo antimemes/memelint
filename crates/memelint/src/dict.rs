@@ -16,6 +16,10 @@ pub struct Sense {
     /// points back at it. `n` is a noun, `TN` is a technical name, and `TV` is
     /// a technical verb.
     pub same_word_as: Vec<String>,
+    /// The alternative to write for the word, when the spec gives only one
+    /// and it has the same part of speech. The spec's alternatives are not
+    /// synonyms in all contexts, thus the fix made from it is not safe.
+    pub same_pos_alternative: Option<String>,
 }
 
 pub struct Dictionary {
@@ -59,21 +63,23 @@ impl Dictionary {
                     dict.verbs.insert(e.lemma.clone());
                 }
             } else {
-                let mut sense = Sense {
-                    pos: e.pos,
-                    alternatives: Vec::new(),
-                    same_word_as: Vec::new(),
+                // An alternative that is the same word points at the parts of
+                // speech in which the word is approved.
+                let (same, other): (Vec<_>, Vec<_>) = e
+                    .alternatives
+                    .into_iter()
+                    .filter(|a| !a.word.is_empty())
+                    .partition(|a| a.word == e.lemma);
+                let same_pos_alternative = match (&other[..], same.is_empty()) {
+                    ([a], true) if a.pos == e.pos => Some(a.word.clone()),
+                    _ => None,
                 };
-                for a in e.alternatives {
-                    if a.word.is_empty() {
-                        continue;
-                    }
-                    if a.word == e.lemma {
-                        sense.same_word_as.push(a.pos);
-                    } else {
-                        sense.alternatives.push(a.word);
-                    }
-                }
+                let sense = Sense {
+                    pos: e.pos,
+                    alternatives: other.into_iter().map(|a| a.word).collect(),
+                    same_word_as: same.into_iter().map(|a| a.pos).collect(),
+                    same_pos_alternative,
+                };
                 dict.unapproved.entry(e.lemma).or_default().push(sense);
             }
         }
@@ -169,5 +175,30 @@ mod tests {
         assert_eq!(d.unapproved_lemma("blorped").unwrap().0, "blorp");
         assert!(d.unapproved("blorp")[0].alternatives.is_empty());
         assert_eq!(d.unapproved("blorp")[0].same_word_as, ["TN"]);
+    }
+
+    #[test]
+    fn same_pos_alternatives() {
+        // Entries in the shape of the vocabulary file. The words are not English.
+        let d = Dictionary::from_json(
+            r#"{"issue": 0, "entries": [
+            {"lemma": "hoist", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
+            {"lemma": "glimb", "pos": "n", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
+            {"lemma": "plonk", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "frob", "pos": "v"}]},
+            {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]},
+            {"lemma": "snarf", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "snarf", "pos": "TN"}]}
+            ]}"#,
+        )
+        .unwrap();
+        let alt = |word: &str| d.unapproved(word)[0].same_pos_alternative.clone();
+
+        assert_eq!(alt("hoist").as_deref(), Some("lift"));
+        // The alternative has a different part of speech.
+        assert_eq!(alt("glimb"), None);
+        // More than one alternative.
+        assert_eq!(alt("plonk"), None);
+        // The spec points at the same word.
+        assert_eq!(alt("blorp"), None);
+        assert_eq!(alt("snarf"), None);
     }
 }

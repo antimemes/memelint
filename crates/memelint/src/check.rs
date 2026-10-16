@@ -232,6 +232,57 @@ fn contraction_fix(
     })
 }
 
+/// The fix that writes `alt` for `text[start..end]`. It is not safe: the
+/// alternatives of the spec are not synonyms in all contexts. There is no fix
+/// when the range is on more than one line.
+fn alternative_fix(
+    text: &str,
+    (start, end): (usize, usize),
+    comment: &Comment,
+    alt: &str,
+) -> Option<Fix> {
+    let (src_start, src_end) = comment.source_range(start, end)?;
+    Some(Fix {
+        start: src_start,
+        end: src_end,
+        replacement: recase(&text[start..end], alt),
+        safe: false,
+    })
+}
+
+/// The alternative to write for an unapproved word: the spec gives one
+/// alternative with the same part of speech, in one sense of the word.
+fn one_alternative(senses: &[Sense]) -> Option<&str> {
+    match senses {
+        [sense] => sense.same_pos_alternative.as_deref(),
+        _ => None,
+    }
+}
+
+/// The alternative `alt` of `lemma` in the inflection of `word`, for example
+/// `lifted` for `hoisted`. None when no inflection of `alt` is approved.
+fn inflected_alternative(
+    word: &str,
+    lemma: &str,
+    alt: &str,
+    dict: &Dictionary,
+    allow: &Allowlist,
+) -> Option<String> {
+    let candidates = if word == lemma {
+        vec![alt.to_string()]
+    } else {
+        let suffix = word.strip_prefix(lemma)?;
+        vec![
+            format!("{alt}{suffix}"),
+            format!("{alt}e{suffix}"),
+            format!("{}{suffix}", alt.strip_suffix('e').unwrap_or(alt)),
+        ]
+    };
+    candidates
+        .into_iter()
+        .find(|c| approved_text(c, dict, allow))
+}
+
 /// Context rule for a word that is approved as some parts of speech and
 /// unapproved as other parts of speech. The result is the unapproved part of
 /// speech that the context shows, if there is one.
@@ -401,10 +452,12 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
             continue;
         }
         // Possessive: `the pump's inlet` is about the `pump`.
+        let full = word;
         let word = word
             .strip_suffix("'s")
             .or_else(|| word.strip_suffix("’s"))
             .unwrap_or(word);
+        let possessive = full.len() - word.len();
 
         // Unapproved phrases of 2 or 3 words.
         let phrase_hit = (2..=3).rev().find_map(|len| {
@@ -419,11 +472,20 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
         });
         if let Some((len, phrase)) = phrase_hit {
             if !allow.allows(&phrase) {
-                findings.push(finding(
+                let senses = dict.unapproved(&phrase);
+                let mut f = finding(
                     "1.1",
                     tok.start,
-                    unapproved_message(&phrase, &phrase, dict.unapproved(&phrase)),
-                ));
+                    unapproved_message(&phrase, &phrase, senses),
+                );
+                if let Some(alt) = one_alternative(senses)
+                    && approved_text(alt, dict, allow)
+                {
+                    let last = &tokens[i + len - 1];
+                    let range = (word_range(&text, tok).0, word_range(&text, last).1);
+                    f.fix = alternative_fix(&text, range, comment, alt);
+                }
+                findings.push(f);
             }
             skip_until = i + len;
             continue;
@@ -438,10 +500,16 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
         };
         let prev = i.checked_sub(1).and_then(|j| tokens[j].word.as_deref());
         let next = tokens.get(i + 1).and_then(|t| t.word.as_deref());
+        let one_part = parts.len() == 1;
         for part in parts {
-            if let Some((rule, message)) = judge(part, prev, next, tok.starts_sentence, dict, allow)
-            {
-                findings.push(finding(rule, tok.start, message));
+            if let Some(verdict) = judge(part, prev, next, tok.starts_sentence, dict, allow) {
+                let mut f = finding(verdict.rule, tok.start, verdict.message);
+                if let (true, Some(alt)) = (one_part, verdict.replacement) {
+                    // The range is the word without the possessive `'s`.
+                    let (start, end) = word_range(&text, tok);
+                    f.fix = alternative_fix(&text, (start, end - possessive), comment, &alt);
+                }
+                findings.push(f);
                 break;
             }
         }
@@ -449,6 +517,15 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
 
     findings.sort_by_key(|f| (f.line, f.col));
     findings
+}
+
+/// The rule that a word breaks, as `judge` finds it.
+struct Verdict {
+    rule: &'static str,
+    message: String,
+    /// The word to write for it, in lower case, when the spec gives one
+    /// alternative with the same part of speech (rule 1.1).
+    replacement: Option<String>,
 }
 
 /// The rule and message for one word, if it breaks a rule.
@@ -459,10 +536,17 @@ fn judge(
     starts_sentence: bool,
     dict: &Dictionary,
     allow: &Allowlist,
-) -> Option<(&'static str, String)> {
+) -> Option<Verdict> {
     if allow.allows(word) {
         return None;
     }
+    let verdict = |rule, message, replacement| {
+        Some(Verdict {
+            rule,
+            message,
+            replacement,
+        })
+    };
     let approved = dict.approved_pos(word);
     if !approved.is_empty() {
         let senses = dict.unapproved(word);
@@ -472,7 +556,7 @@ fn judge(
         let unapproved_pos: Vec<String> = senses.iter().map(|s| s.pos.clone()).collect();
         let pos = used_as_unapproved(approved, &unapproved_pos, prev, next, starts_sentence)?;
         let sense = senses.iter().find(|s| s.pos == pos).unwrap();
-        return Some((
+        return verdict(
             "1.2",
             format!(
                 "'{word}' is approved only as {}; as {} use {}",
@@ -480,28 +564,33 @@ fn judge(
                 pos_name(&pos),
                 list(&sense.alternatives)
             ),
-        ));
+            None,
+        );
     }
 
     if let Some((lemma, senses)) = dict.unapproved_lemma(word) {
-        return Some(("1.1", unapproved_message(word, lemma, senses)));
+        let replacement = one_alternative(senses)
+            .and_then(|alt| inflected_alternative(word, lemma, alt, dict, allow));
+        return verdict("1.1", unapproved_message(word, lemma, senses), replacement);
     }
 
     if let Some(verb) = ing_verb(word, dict) {
-        return Some((
+        return verdict(
             "3.5",
             format!(
                 "'{word}' is the -ing form of '{verb}'; STE allows only the infinitive, imperative, past tense and past participle"
             ),
-        ));
+            None,
+        );
     }
 
-    Some((
+    verdict(
         "1.6",
         format!(
             "'{word}' is not in the STE dictionary; if it is a technical name, add it to {CONFIG_FILE}"
         ),
-    ))
+        None,
+    )
 }
 
 #[cfg(test)]
@@ -530,7 +619,9 @@ mod tests {
           {"lemma": "not", "pos": "adv", "status": "approved", "forms": ["not"]},
           {"lemma": "hoist", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
           {"lemma": "zorch up", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
-          {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]}
+          {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]},
+          {"lemma": "glimb", "pos": "n", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
+          {"lemma": "plonk", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "frob", "pos": "v"}]}
         ]}"#,
         )
         .unwrap()
@@ -637,13 +728,17 @@ mod tests {
         assert!(messages("Lift gantry_id to GANTRY 2 (frob `x`).", "").is_empty());
     }
 
-    /// The fix of the one 4.2 finding in `text`.
-    fn contraction_fix_of(text: &str) -> Option<Fix> {
+    /// The fix of the one finding of `rule` in `text`.
+    fn fix_of(text: &str, rule: &str) -> Option<Fix> {
         let findings = check(&comment(text), &dict(), &Allowlist::default());
-        let mut hits = findings.into_iter().filter(|f| f.rule == "4.2");
-        let fix = hits.next().expect("a contraction finding").fix;
-        assert!(hits.next().is_none(), "one contraction finding");
+        let mut hits = findings.into_iter().filter(|f| f.rule == rule);
+        let fix = hits.next().expect("a finding of the rule").fix;
+        assert!(hits.next().is_none(), "one finding of the rule");
         fix
+    }
+
+    fn contraction_fix_of(text: &str) -> Option<Fix> {
+        fix_of(text, "4.2")
     }
 
     #[test]
@@ -692,6 +787,55 @@ mod tests {
         let fix = contraction_fix_of(text).unwrap();
         assert_eq!(&text[fix.start..fix.end], "doesn't");
         assert_eq!(fix.replacement, "does not");
+    }
+
+    #[test]
+    fn alternative_fix_replaces_the_word() {
+        assert_eq!(
+            fix_of("Hoist the gantry.", "1.1"),
+            Some(Fix {
+                start: 0,
+                end: "Hoist".len(),
+                replacement: "Lift".to_string(),
+                safe: false,
+            })
+        );
+        // An inflection of the word gets the same inflection of the alternative.
+        assert_eq!(
+            fix_of("The gantry hoisted.", "1.1").unwrap().replacement,
+            "lifted"
+        );
+    }
+
+    #[test]
+    fn alternative_fix_replaces_the_phrase() {
+        let text = "Zorch up the gantry.";
+        let fix = fix_of(text, "1.1").unwrap();
+        assert_eq!(&text[fix.start..fix.end], "Zorch up");
+        assert_eq!(fix.replacement, "Lift");
+        assert!(!fix.safe);
+        // A phrase on more than one line has no fix.
+        assert_eq!(fix_of("Zorch\nup the gantry.", "1.1"), None);
+    }
+
+    #[test]
+    fn alternative_fix_keeps_the_possessive() {
+        let text = "The hoist's gantry.";
+        let fix = fix_of(text, "1.1").unwrap();
+        assert_eq!(&text[fix.start..fix.end], "hoist");
+        assert_eq!(fix.replacement, "lift");
+    }
+
+    #[test]
+    fn words_without_one_alternative_of_the_same_part_of_speech_get_no_fix() {
+        // The alternative is a verb; the word is a noun.
+        assert_eq!(fix_of("The glimb is wide.", "1.1"), None);
+        // More than one alternative.
+        assert_eq!(fix_of("Plonk the gantry.", "1.1"), None);
+        // A word with a hyphen.
+        assert_eq!(fix_of("Frob-hoist the gantry.", "1.1"), None);
+        // The spec points at the word as a technical name.
+        assert_eq!(fix_of("Blorp the gantry.", "1.1"), None);
     }
 
     #[test]

@@ -13,7 +13,7 @@ foo.py:4:7: error: sentence has 28 words; the STE limit for descriptive text is 
 foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the infinitive, imperative, past tense and past participle [STE 3.5]
 ```
 
-`memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full.
+`memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full. `--unsafe-fixes` also replaces each unapproved word with the one alternative of the same part of speech; examine the diff.
 
 ## Usage
 

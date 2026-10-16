@@ -42,6 +42,11 @@ enum Command {
         /// written only when its code parses the same before and after.
         #[arg(long)]
         fix: bool,
+        /// With --fix, also replace each unapproved word that has one
+        /// alternative of the same part of speech. The alternatives of the
+        /// spec do not have the same meaning in all contexts: examine the diff.
+        #[arg(long, requires = "fix")]
+        unsafe_fixes: bool,
     },
     /// Download the word lists that `memelint.toml` gives as URLs into the cache.
     #[cfg(feature = "fetch")]
@@ -61,7 +66,8 @@ fn main() -> Result<()> {
             config,
             grammars,
             fix,
-        } => run_check(paths, vocab, config, grammars, fix),
+            unsafe_fixes,
+        } => run_check(paths, vocab, config, grammars, fix, unsafe_fixes),
         #[cfg(feature = "fetch")]
         Command::Fetch { config } => run_fetch(config),
     }
@@ -73,6 +79,7 @@ fn run_check(
     config_path: PathBuf,
     grammar_dir: Option<PathBuf>,
     fix: bool,
+    unsafe_fixes: bool,
 ) -> Result<()> {
     let vocab_path = match memelint_common::locate(vocab.as_deref(), memelint_common::ASD_STE100) {
         Ok(path) => path,
@@ -102,7 +109,9 @@ fn run_check(
     }
 
     let (mut files, mut comments, mut errors, mut warnings) = (0usize, 0usize, 0usize, 0usize);
-    let (mut fixable, mut fixed, mut fixed_files) = (0usize, 0usize, 0usize);
+    let (mut fixed, mut fixed_files) = (0usize, 0usize);
+    // Findings with a fix that was not applied: safe fixes, and unsafe fixes.
+    let (mut safe_left, mut unsafe_left) = (0usize, 0usize);
     for entry in walk.build() {
         let entry = entry?;
         let path = entry.path();
@@ -128,6 +137,7 @@ fn run_check(
             let fixes: Vec<&check::Fix> = findings
                 .iter()
                 .filter_map(|(f, _)| f.fix.as_ref())
+                .filter(|x| x.safe || unsafe_fixes)
                 .collect();
             if !fixes.is_empty() {
                 match fix::apply(&source, &fixes) {
@@ -142,8 +152,13 @@ fn run_check(
                     _ => eprintln!("note: {shown}: the fixes would change the code; not applied"),
                 }
             }
-        } else {
-            fixable += findings.iter().filter(|(f, _)| f.fix.is_some()).count();
+        }
+        for x in findings.iter().filter_map(|(f, _)| f.fix.as_ref()) {
+            if x.safe {
+                safe_left += 1;
+            } else {
+                unsafe_left += 1;
+            }
         }
         comments += n;
         for (f, severity) in findings {
@@ -170,8 +185,11 @@ fn run_check(
     );
     if fix {
         eprintln!("fixed {fixed} findings in {fixed_files} files");
-    } else if fixable > 0 {
-        eprintln!("note: {fixable} findings can be fixed with --fix");
+        if unsafe_left > 0 {
+            eprintln!("note: {unsafe_left} more findings can be fixed with --unsafe-fixes");
+        }
+    } else if let Some(note) = fixable_note(safe_left, unsafe_left) {
+        eprintln!("note: {note}");
     }
     if !grammars.missing.is_empty() {
         let names: Vec<&str> = grammars.missing.iter().map(String::as_str).collect();
@@ -190,6 +208,20 @@ fn run_check(
         std::process::exit(1);
     }
     Ok(())
+}
+
+/// How many findings `--fix` can remove, and `--fix --unsafe-fixes`.
+fn fixable_note(safe: usize, unsafe_: usize) -> Option<String> {
+    match (safe, unsafe_) {
+        (0, 0) => None,
+        (s, 0) => Some(format!("{s} findings can be fixed with --fix")),
+        (0, u) => Some(format!(
+            "{u} findings can be fixed with --fix --unsafe-fixes"
+        )),
+        (s, u) => Some(format!(
+            "{s} findings can be fixed with --fix, and {u} more with --fix --unsafe-fixes"
+        )),
+    }
 }
 
 /// The number of comments in `source`, and its findings with their
