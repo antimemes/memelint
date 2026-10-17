@@ -2,7 +2,7 @@
 //! part-of-speech check for words that are approved in one part of speech
 //! only. Contractions. The -ing form of approved verbs. Sentence length.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::config::CONFIG_FILE;
 use crate::dict::{Dictionary, Sense};
@@ -37,11 +37,17 @@ pub struct Fix {
 /// Words that the project examined and accepted: technical names and verbs
 /// in the sense of the spec. They come from `memelint.toml`.
 #[derive(Debug, Default, Clone)]
-pub struct Allowlist(HashSet<String>);
+pub struct Allowlist {
+    words: HashSet<String>,
+    /// Phrases, for example `base URL`: the words before the last one,
+    /// with one space between them, and then the last words as an
+    /// allowlist. Thus the last word of a phrase can have an inflection.
+    phrases: HashMap<String, Allowlist>,
+}
 
 impl Allowlist {
-    /// Words with whitespace or line breaks between them. Text after `#` is
-    /// a comment.
+    /// One entry on each line: a word, or a phrase of some words. Text
+    /// after `#` is a comment.
     #[cfg(test)]
     pub fn parse(text: &str) -> Self {
         let mut allow = Self::default();
@@ -52,9 +58,35 @@ impl Allowlist {
     pub fn extend(&mut self, text: &str) {
         for line in text.lines() {
             let line = line.split('#').next().unwrap_or("");
-            self.0
-                .extend(line.split_whitespace().map(str::to_lowercase));
+            let parts: Vec<String> = line.split_whitespace().map(str::to_lowercase).collect();
+            match parts.split_last() {
+                None => {}
+                Some((word, [])) => {
+                    self.words.insert(word.clone());
+                }
+                Some((last, before)) => {
+                    self.phrases
+                        .entry(before.join(" "))
+                        .or_default()
+                        .words
+                        .insert(last.clone());
+                }
+            }
         }
+    }
+
+    /// A phrase in the list, as its words in lower case. The last word can
+    /// be an inflection.
+    pub fn allows_phrase(&self, parts: &[&str]) -> bool {
+        let Some((last, before)) = parts.split_last() else {
+            return false;
+        };
+        if before.is_empty() {
+            return self.allows(last);
+        }
+        self.phrases
+            .get(&before.join(" "))
+            .is_some_and(|a| a.allows(last))
     }
 
     /// The word, or a regular inflection of it: the plural, or the -s and
@@ -68,14 +100,18 @@ impl Allowlist {
     /// `pinned` and `pined`.
     /// The word is in the list, with no inflection.
     pub fn allows_exactly(&self, word: &str) -> bool {
-        self.0.contains(word)
+        self.words.contains(word)
     }
 
     pub fn allows(&self, word: &str) -> bool {
-        if self.0.contains(word) {
+        if word.contains(' ') {
+            let parts: Vec<&str> = word.split(' ').collect();
+            return self.allows_phrase(&parts);
+        }
+        if self.words.contains(word) {
             return true;
         }
-        let listed = |stem: &str| self.0.contains(stem);
+        let listed = |stem: &str| self.words.contains(stem);
         let sibilant = |stem: &str| {
             ["s", "x", "z", "ch", "sh"]
                 .iter()
@@ -108,6 +144,9 @@ impl Allowlist {
 struct Token {
     /// Byte offset of the token in the comment text.
     start: usize,
+    /// The token in lower case without the punctuation at its ends, also
+    /// when it is not a word: `url` for `URL`.
+    raw: String,
     /// The token as a lower-case word, if it is one (not an identifier,
     /// number, acronym or one letter).
     word: Option<String>,
@@ -126,6 +165,9 @@ fn tokenize(text: &str) -> Vec<Token> {
         }
         tokens.push(Token {
             start,
+            raw: raw
+                .trim_matches(|c: char| !c.is_alphanumeric())
+                .to_lowercase(),
             word: word_of(raw),
             starts_sentence: sentence_start,
         });
@@ -485,6 +527,17 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
     let mut skip_until = 0;
     for (i, tok) in tokens.iter().enumerate() {
         if i < skip_until {
+            continue;
+        }
+        // Phrases of 2 or 3 words in the allowlist, for example `base URL`.
+        // The tokens are compared as text, because `URL` is not a word.
+        if let Some(len) = (2..=3).rev().find(|&len| {
+            tokens.get(i..i + len).is_some_and(|ts| {
+                let parts: Vec<&str> = ts.iter().map(|t| t.raw.as_str()).collect();
+                allow.allows_phrase(&parts)
+            })
+        }) {
+            skip_until = i + len;
             continue;
         }
         let Some(word) = &tok.word else { continue };
@@ -949,8 +1002,28 @@ mod tests {
     }
 
     #[test]
+    fn allowlisted_phrases() {
+        // `base` is not in the test dictionary. In the phrase it gets no
+        // finding, and only there. `URL` is not a word, and the phrase has it.
+        assert!(messages("The base URL is wide.", "base url").is_empty());
+        assert!(messages("The base URLs are wide.", "base url").is_empty());
+        assert_eq!(messages("The base URL is wide.", "").len(), 1);
+        assert_eq!(messages("The base is wide.", "base url").len(), 1);
+        assert!(messages("Lift the dead letter gantry.", "dead letter gantry").is_empty());
+        assert_eq!(
+            messages("The letter is wide.", "dead letter gantry").len(),
+            1
+        );
+        // An unapproved phrase of the dictionary can be in the list.
+        assert!(messages("Zorch up the gantry.", "zorch up").is_empty());
+        let allow = Allowlist::parse("base url # the first part of each address\nzib");
+        assert!(allow.allows("base url") && allow.allows("zib"));
+        assert!(!allow.allows("base") && !allow.allows("url"));
+    }
+
+    #[test]
     fn allowlist_inflections_follow_spelling_rules() {
-        let allow = Allowlist::parse("set box frobe gantry pin");
+        let allow = Allowlist::parse("set\nbox\nfrobe\ngantry\npin");
         for word in [
             "sets", "boxes", "frobed", "gantries", "gantried", "pinned", "pined",
         ] {

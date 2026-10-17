@@ -3,7 +3,9 @@
 The ASD-STE100 dictionary has approximately 900 words. The technical names and technical verbs of your domain are not in it, and the standard lets you use them. Tell memelint which they are:
 
 - `words`: a list in `memelint.toml`.
-- `word-lists`: files with one word on each line and `#` comments. An entry is a path from the directory of `memelint.toml`, a URL, or the name of a bundled list.
+- `word-lists`: files with one entry on each line and `#` comments. An entry is a path from the directory of `memelint.toml`, a URL, or the name of a bundled list.
+
+An entry is one word, or a phrase of 2 or 3 words, for example `base URL`. The words of a phrase are accepted only together: `base` without `URL` is examined as before. The last word of a phrase can have an inflection.
 - `default-word-lists`: the bundled lists are on unless this is `false`. The `software` list applies to all files, and the list of a language to its files.
 
 The entries add to each other. memelint accepts a listed word with its plural and its `-s` and `-ed` forms. It does not accept the `-ing` form: STE does not let you use the `-ing` form of a verb (rule 3.5). A technical name that ends in `-ing`, for example `landing`, goes in the list as a word.

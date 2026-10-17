@@ -1,5 +1,4 @@
 app.js:2:37: error: 'grue' is not approved; use 'wide' [STE 1.1]
-lib.rs:1:5: error: 'zorch up' is not approved; use 'lift' [STE 1.1]
 lib.rs:3:19: error: 'frob' is approved only as a verb; as an adjective use 'wide' [STE 1.2]
 lib.rs:7:4: error: sentence has 27 words; the STE limit for descriptive text is 25 [STE 6.3]
 lib.rs:7:4: error: 'snarfed' ('snarf') is not approved; use 'frob' or 'turn' [STE 1.1]
@@ -12,5 +11,5 @@ memelint.toml:1:8: error: 'names' is not in the STE dictionary; if it is a techn
 memelint.toml:1:23: error: 'action' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
 sub/notes.c:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
 util.go:3:21: error: 'it's' is a contraction; write the words in full [STE 4.2]
-6 files, 11 comments, 14 errors, 0 warnings (ASD-STE100 issue 0)
-note: 1 findings can be fixed with --fix, and 5 more with --fix --unsafe-fixes
+6 files, 11 comments, 13 errors, 0 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix, and 4 more with --fix --unsafe-fixes
