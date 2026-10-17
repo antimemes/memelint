@@ -51,10 +51,18 @@ fn approved(e: &Entry) -> bool {
     e.status == "approved"
 }
 
+/// The last note has no end mark: the next line continues it.
+fn unfinished_note(e: &Entry) -> bool {
+    e.notes
+        .last()
+        .is_some_and(|n| !(n.ends_with('.') || n.ends_with(':')))
+}
+
 fn add_note(e: &mut Entry, text: &str) {
-    match e.notes.last_mut() {
-        Some(last) if !(last.ends_with('.') || last.ends_with(':')) => append(last, text),
-        _ => e.notes.push(squash(text)),
+    if unfinished_note(e) {
+        append(e.notes.last_mut().unwrap(), text);
+    } else {
+        e.notes.push(squash(text));
     }
 }
 
@@ -537,6 +545,11 @@ fn consume_row(
                 ..Default::default()
             });
             *in_other = false;
+        } else if !approved(entry) && !new_row && unfinished_note(entry) {
+            // A note that continues on the next line can be all upper-case,
+            // for example `refer to the approved meanings of` / `PERSON (n)
+            // and` / `PERSONNEL (n).`. It is not an alternative.
+            add_note(entry, c2);
         } else if caps_line(c2)
             || RE_TAGS.is_match(c2) && RE_TAGS.replace_all(c2, "").trim().is_empty()
         {
