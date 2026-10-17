@@ -396,7 +396,7 @@ fn pos_names(list: &[String]) -> String {
 
 /// The message for an unapproved word. It gives the alternatives, and the
 /// parts of speech in which the same word is approved, for example as a
-/// technical name.
+/// technical name. The notes of the spec come last, as full sentences.
 fn unapproved_message(word: &str, lemma: &str, senses: &[Sense]) -> String {
     let shown = if word == lemma {
         format!("'{word}'")
@@ -415,6 +415,19 @@ fn unapproved_message(word: &str, lemma: &str, senses: &[Sense]) -> String {
         message.push_str(&format!("; it is approved only as {}", pos_names(&same)));
         if same.iter().any(|p| p == "TN" || p == "TV") {
             message.push_str(&format!(" (add it to {CONFIG_FILE} if it is one here)"));
+        }
+    }
+    let mut notes: Vec<String> = senses
+        .iter()
+        .flat_map(|s| s.notes.iter().map(|n| n.trim().to_string()))
+        .filter(|n| !n.is_empty())
+        .collect();
+    dedup(&mut notes);
+    for note in notes {
+        message.push_str(". ");
+        message.push_str(&note);
+        if !note.ends_with(['.', '!', '?']) {
+            message.push('.');
         }
     }
     message
@@ -526,27 +539,28 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
             continue;
         }
 
-        // A word with hyphens: each part is examined, unless the full word is
-        // in the allowlist.
-        let parts: Vec<&str> = if allow.allows(word) {
-            Vec::new()
-        } else {
-            word.split('-').filter(|p| !p.is_empty()).collect()
-        };
+        if allow.allows(word) {
+            continue;
+        }
         let prev = i.checked_sub(1).and_then(|j| tokens[j].word.as_deref());
         let next = tokens.get(i + 1).and_then(|t| t.word.as_deref());
-        let one_part = parts.len() == 1;
-        for part in parts {
-            if let Some(verdict) = judge(part, prev, next, tok.starts_sentence, dict, allow) {
-                let mut f = finding(verdict.rule, tok.start, verdict.message);
-                if let (true, Some(alt)) = (one_part, verdict.replacement) {
-                    // The range is the word without the possessive `'s`.
-                    let (start, end) = word_range(&text, tok);
-                    f.fix = alternative_fix(&text, (start, end - possessive), comment, &alt);
-                }
-                findings.push(f);
-                break;
+        // A word with hyphens that the dictionary lists, for example
+        // `left-hand`, is examined as one word. If the dictionary does not
+        // list it, each part is examined.
+        let whole = !word.contains('-') || dict.knows(word);
+        let verdict = if whole {
+            judge(word, prev, next, tok.starts_sentence, dict, allow)
+        } else {
+            judge_parts(word, prev, next, tok.starts_sentence, dict, allow)
+        };
+        if let Some(verdict) = verdict {
+            let mut f = finding(verdict.rule, tok.start, verdict.message);
+            if let (true, Some(alt)) = (whole, verdict.replacement) {
+                // The range is the word without the possessive `'s`.
+                let (start, end) = word_range(&text, tok);
+                f.fix = alternative_fix(&text, (start, end - possessive), comment, &alt);
             }
+            findings.push(f);
         }
     }
 
@@ -561,6 +575,52 @@ struct Verdict {
     /// The word to write for it, in lower case, when the spec gives one
     /// alternative with the same part of speech (rule 1.1).
     replacement: Option<String>,
+}
+
+/// Prefixes on which STE does not rule. A part of a word with hyphens that
+/// is one of these is accepted, and the remaining parts are examined.
+const PREFIXES: &[&str] = &[
+    "anti", "auto", "co", "counter", "cross", "de", "inter", "micro", "mid", "multi", "non",
+    "over", "post", "pre", "pseudo", "self", "semi", "sub", "un", "under",
+];
+
+/// The rule and message for a word with hyphens that the dictionary does not
+/// list as one word. Each part is examined in turn. A part before a hyphen is
+/// first looked up as a prefix, for example `re-`. The dictionary can list the
+/// prefix as approved, or rule against it, or not list it. The first part that
+/// breaks a rule gives the result.
+fn judge_parts(
+    word: &str,
+    prev: Option<&str>,
+    next: Option<&str>,
+    starts_sentence: bool,
+    dict: &Dictionary,
+    allow: &Allowlist,
+) -> Option<Verdict> {
+    let parts: Vec<&str> = word.split('-').filter(|p| !p.is_empty()).collect();
+    for (i, part) in parts.iter().enumerate() {
+        if i + 1 < parts.len() {
+            let prefix = format!("{part}-");
+            if !dict.approved_pos(&prefix).is_empty() {
+                continue;
+            }
+            let senses = dict.unapproved(&prefix);
+            if !senses.is_empty() {
+                return Some(Verdict {
+                    rule: "1.1",
+                    message: unapproved_message(&prefix, &prefix, senses),
+                    replacement: None,
+                });
+            }
+            if PREFIXES.contains(part) {
+                continue;
+            }
+        }
+        if let Some(verdict) = judge(part, prev, next, starts_sentence, dict, allow) {
+            return Some(verdict);
+        }
+    }
+    None
 }
 
 /// The rule and message for one word, if it breaks a rule.
@@ -657,7 +717,11 @@ mod tests {
           {"lemma": "blorp", "pos": "v", "status": "unapproved", "alternatives": [{"word": "blorp", "pos": "TN"}]},
           {"lemma": "glimb", "pos": "n", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]},
           {"lemma": "blish", "pos": "v", "status": "unapproved", "alternatives": [{"word": "frob", "pos": "v"}]},
-          {"lemma": "plonk", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "frob", "pos": "v"}]}
+          {"lemma": "plonk", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}, {"word": "frob", "pos": "v"}]},
+          {"lemma": "zorch-free", "pos": "adj", "status": "unapproved", "alternatives": [{"word": "wide", "pos": "adj"}]},
+          {"lemma": "hoist-wide", "pos": "adj", "status": "approved", "forms": ["hoist-wide"]},
+          {"lemma": "re-", "headword": "re-", "pos": "prefix", "status": "unapproved", "notes": ["Use the basic word with 'again'."]},
+          {"lemma": "snarf", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}], "notes": ["A more exact verb is better"]}
         ]}"#,
         )
         .unwrap()
@@ -929,6 +993,68 @@ mod tests {
         assert_eq!(fix_of("Frob-hoist the gantry.", "1.1"), None);
         // The spec points at the word as a technical name.
         assert_eq!(fix_of("Blorp the gantry.", "1.1"), None);
+    }
+
+    #[test]
+    fn hyphenated_headword_is_judged_whole() {
+        // `zorch-free` is unapproved as one word, although `free` is not a
+        // problem as a part. The fix replaces the full word.
+        let text = "The gantry is zorch-free.";
+        assert_eq!(
+            messages(text, ""),
+            ["'zorch-free' is not approved; use 'wide'"]
+        );
+        let fix = fix_of(text, "1.1").unwrap();
+        assert_eq!(&text[fix.start..fix.end], "zorch-free");
+        assert_eq!(fix.replacement, "wide");
+        // `hoist-wide` is approved as one word, although `hoist` is not.
+        assert!(messages("The gantry is hoist-wide.", "").is_empty());
+        // A word with hyphens that the dictionary does not list: each part.
+        assert_eq!(
+            messages("The gantry is hoist-frob.", ""),
+            ["'hoist' is not approved; use 'lift'"]
+        );
+    }
+
+    #[test]
+    fn prefixes() {
+        // The dictionary rules against `re-`. The remaining part of the word
+        // is not examined.
+        assert_eq!(
+            messages("Re-frob the gantry.", ""),
+            ["'re-' is not approved. Use the basic word with 'again'."]
+        );
+        assert_eq!(
+            messages("Re-sprocket the gantry.", ""),
+            ["'re-' is not approved. Use the basic word with 'again'."]
+        );
+        // `non` is a prefix on which STE does not rule; `frob` is approved.
+        assert!(messages("The non-frob gantry.", "").is_empty());
+        // The finding is about the remaining part of the word, not the prefix.
+        assert_eq!(
+            messages("The non-blorp gantry.", ""),
+            [
+                "'blorp' is not approved; it is approved only as a technical name (add it to memelint.toml if it is one here)"
+            ]
+        );
+        // The last part is not a prefix.
+        let msgs = messages("Lift the frob-non.", "");
+        assert_eq!(msgs.len(), 1);
+        assert!(msgs[0].starts_with("'non' is not in the STE dictionary"));
+    }
+
+    #[test]
+    fn number_words_are_approved() {
+        assert!(messages("Lift two gantries. The third gantry is wide.", "").is_empty());
+    }
+
+    #[test]
+    fn notes_follow_the_alternatives() {
+        // The note gets its full stop.
+        assert_eq!(
+            messages("Snarf the gantry.", ""),
+            ["'snarf' is not approved; use 'lift'. A more exact verb is better."]
+        );
     }
 
     #[test]

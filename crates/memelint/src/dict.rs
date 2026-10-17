@@ -20,7 +20,69 @@ pub struct Sense {
     /// and it has the same part of speech. The spec's alternatives are not
     /// synonyms in all contexts, thus the fix made from it is not safe.
     pub same_pos_alternative: Option<String>,
+    /// The notes of the spec on the word, as full sentences. For the prefix
+    /// `re-`, the note is to use the basic word with `again` or `back`.
+    pub notes: Vec<String>,
 }
+
+/// Number words. STE uses them in its example sentences (`TWO PERSONS`,
+/// `A THIRD LAYER`) but does not list them in its dictionary. Each is approved
+/// as an adjective.
+const NUMBER_WORDS: &[&str] = &[
+    // Quantities. `one` is also a pronoun in the dictionary.
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+    "twenty",
+    "thirty",
+    "forty",
+    "fifty",
+    "sixty",
+    "seventy",
+    "eighty",
+    "ninety",
+    "hundred",
+    "thousand",
+    "million",
+    "billion",
+    // Positions in a sequence.
+    "first",
+    "second",
+    "third",
+    "fourth",
+    "fifth",
+    "sixth",
+    "seventh",
+    "eighth",
+    "ninth",
+    "tenth",
+    "eleventh",
+    "twelfth",
+    "twentieth",
+    "thirtieth",
+    "fortieth",
+    "fiftieth",
+    "hundredth",
+];
+
+/// The number words that are also nouns, with a plural: `hundreds`.
+const NUMBER_NOUNS: &[&str] = &["hundred", "thousand", "million", "billion"];
 
 pub struct Dictionary {
     pub issue: Option<u32>,
@@ -79,9 +141,17 @@ impl Dictionary {
                     alternatives: other.into_iter().map(|a| a.word).collect(),
                     same_word_as: same.into_iter().map(|a| a.pos).collect(),
                     same_pos_alternative,
+                    notes: e.notes,
                 };
                 dict.unapproved.entry(e.lemma).or_default().push(sense);
             }
+        }
+        for word in NUMBER_WORDS {
+            dict.add_approved(word, "adj");
+        }
+        for noun in NUMBER_NOUNS {
+            dict.add_approved(noun, "n");
+            dict.add_approved(&plural(noun), "n");
         }
         dict
     }
@@ -96,6 +166,12 @@ impl Dictionary {
     /// Parts of speech `form` is approved as; empty if it is not approved.
     pub fn approved_pos(&self, form: &str) -> &[String] {
         self.approved.get(form).map_or(&[], Vec::as_slice)
+    }
+
+    /// The dictionary lists `word`: as an approved form, or as an unapproved
+    /// word or an inflection of one.
+    pub fn knows(&self, word: &str) -> bool {
+        !self.approved_pos(word).is_empty() || self.unapproved_lemma(word).is_some()
     }
 
     /// The unapproved uses of `word`, which can be a phrase with spaces.
@@ -175,6 +251,33 @@ mod tests {
         assert_eq!(d.unapproved_lemma("blorped").unwrap().0, "blorp");
         assert!(d.unapproved("blorp")[0].alternatives.is_empty());
         assert_eq!(d.unapproved("blorp")[0].same_word_as, ["TN"]);
+    }
+
+    #[test]
+    fn number_words_are_approved() {
+        let d = Dictionary::from_json(r#"{"issue": 0, "entries": []}"#).unwrap();
+        assert_eq!(d.approved_pos("two"), ["adj"]);
+        assert_eq!(d.approved_pos("third"), ["adj"]);
+        assert_eq!(d.approved_pos("hundred"), ["adj", "n"]);
+        assert_eq!(d.approved_pos("hundreds"), ["n"]);
+        assert!(d.approved_pos("twos").is_empty());
+    }
+
+    #[test]
+    fn notes_come_from_the_entry() {
+        // Entries in the shape of the vocabulary file. The words are not English.
+        let d = Dictionary::from_json(
+            r#"{"issue": 0, "entries": [
+            {"lemma": "re-", "headword": "re-", "pos": "prefix", "status": "unapproved", "notes": ["Use the basic word with 'again'."]},
+            {"lemma": "hoist", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}]}
+            ]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            d.unapproved("re-")[0].notes,
+            ["Use the basic word with 'again'."]
+        );
+        assert!(d.unapproved("hoist")[0].notes.is_empty());
     }
 
     #[test]
