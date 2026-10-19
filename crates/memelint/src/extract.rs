@@ -144,9 +144,11 @@ impl RawComment {
         let starts = std::iter::once(base)
             .chain(text.match_indices('\n').map(|(i, _)| base + i + 1))
             .collect();
+        // The column of tree-sitter is in bytes. Columns are in characters.
+        let line_start = source[..base].rfind('\n').map_or(0, |i| i + 1);
         RawComment {
             line,
-            col: node.start_position().column + 1,
+            col: source[line_start..base].chars().count() + 1,
             end_line: line + text.matches('\n').count(),
             text: text.to_string(),
             starts,
@@ -369,6 +371,23 @@ mod tests {
         assert_eq!(c.position(0), (3, 7));
         let then = c.text().find("Then").unwrap();
         assert_eq!(c.position(then), (4, 7));
+    }
+
+    #[test]
+    fn columns_count_characters_not_bytes() {
+        // A character of more than one byte before the comment on the same
+        // line, and one in the comment.
+        let src = "x = \"é\"  # Lift the arm — then stop.\n";
+        let lang = crate::grammars::Grammars::new(None)
+            .for_path(Path::new("a.py"))
+            .unwrap();
+        let comments = extract(&lang, src);
+        let c = &comments[0];
+        assert_eq!(c.position(0), (1, 12));
+        let then = c.text().find("then").unwrap();
+        assert_eq!(c.position(then), (1, 27));
+        let (a, b) = c.source_range(then, then + 4).unwrap();
+        assert_eq!(&src[a..b], "then");
     }
 
     fn grammar(ext: &str) -> Grammar {

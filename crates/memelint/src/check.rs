@@ -157,9 +157,13 @@ fn tokenize(text: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
     let mut sentence_start = true;
     let mut pos = 0;
-    for raw in text.split(|c: char| c.is_whitespace()) {
+    // Each piece keeps the space at its end. Thus the offset of the next
+    // piece is correct also when that space has more than one byte, for
+    // example U+00A0.
+    for piece in text.split_inclusive(char::is_whitespace) {
         let start = pos;
-        pos += raw.len() + 1;
+        pos += piece.len();
+        let raw = piece.trim_end_matches(char::is_whitespace);
         if raw.is_empty() {
             continue;
         }
@@ -1244,5 +1248,18 @@ mod tests {
         );
         assert_eq!(f.len(), 2);
         assert_eq!((f[0].line, f[0].col), (2, 1));
+    }
+
+    #[test]
+    fn columns_are_correct_after_multibyte_characters() {
+        // A character of 3 bytes and a space of 2 bytes (U+00A0) come
+        // before the finding. Columns count characters, not bytes.
+        let text = "Lift the gantry — then\u{a0}hoist it.";
+        let f = check(&comment(text), &dict(), &Allowlist::default());
+        let hoist = f
+            .iter()
+            .find(|f| f.message.contains("'hoist'"))
+            .expect("finding for hoist");
+        assert_eq!((hoist.line, hoist.col), (1, 24));
     }
 }

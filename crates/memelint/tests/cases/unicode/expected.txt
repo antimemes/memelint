@@ -1,0 +1,5 @@
+main.py:1:26: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+main.py:2:12: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+main.py:2:28: error: 'don't' is a contraction; write the words in full [STE 4.2]
+2 files, 2 comments, 3 errors, 0 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix, and 2 more with --fix --unsafe-fixes

@@ -1,0 +1,5 @@
+main.py:1:26: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+main.py:2:12: error: 'hoist' is not approved; use 'lift' [STE 1.1]
+2 files, 2 comments, 2 errors, 0 warnings (ASD-STE100 issue 0)
+fixed 1 findings in 1 files
+note: 2 more findings can be fixed with --unsafe-fixes
