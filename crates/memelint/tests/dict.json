@@ -578,6 +578,12 @@
       ]
     },
     {
+      "lemma": "use",
+      "pos": "n",
+      "status": "unapproved",
+      "alternatives": []
+    },
+    {
       "lemma": "utilize",
       "pos": "v",
       "status": "unapproved",

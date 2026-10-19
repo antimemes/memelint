@@ -2,4 +2,6 @@ lib.rs:1:14: error: 'back' is approved only as an adverb; as a noun use 'rear' [
 lib.rs:2:27: error: 'back' is approved only as an adverb; as a noun use 'rear' [STE 1.2]
 lib.rs:3:14: error: 'back' is approved only as an adverb; as an adjective use 'rear' [STE 1.2]
 lib.rs:4:14: error: 'back' is approved only as an adverb; as an adjective use 'rear' [STE 1.2]
-2 files, 2 comments, 4 errors, 0 warnings (ASD-STE100 issue 0)
+lib.rs:5:15: error: 'back' is approved only as an adverb; as an adjective use 'rear' [STE 1.2]
+lib.rs:16:16: error: 'use' is approved only as a verb; it is not approved as a noun [STE 1.2]
+2 files, 3 comments, 6 errors, 0 warnings (ASD-STE100 issue 0)

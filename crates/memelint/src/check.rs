@@ -409,7 +409,9 @@ fn used_as_unapproved(
     if !has(approved, "n")
         && !has(approved, "adj")
         && (has(unapproved, "n") || has(unapproved, "adj"))
-        && prev.is_some_and(|p| NOUN_CUES.contains(&p))
+        // A verb can come after `that`, as in `parts that use the runner`.
+        // Thus for a word that is approved as a verb, `that` is not a cue.
+        && prev.is_some_and(|p| NOUN_CUES.contains(&p) && !(p == "that" && has(approved, "v")))
     {
         let noun_follows = next.is_some_and(|n| !PREPOSITION_OR_CONJUNCTION_CUES.contains(&n));
         let pos = match (has(unapproved, "n"), has(unapproved, "adj")) {
@@ -733,16 +735,21 @@ fn judge(
         let unapproved_pos: Vec<String> = senses.iter().map(|s| s.pos.clone()).collect();
         let pos = used_as_unapproved(approved, &unapproved_pos, prev, next, starts_sentence)?;
         let sense = senses.iter().find(|s| s.pos == pos).unwrap();
-        return verdict(
-            "1.2",
+        let message = if sense.alternatives.is_empty() {
+            format!(
+                "'{word}' is approved only as {}; it is not approved as {}",
+                pos_names(approved),
+                pos_name(&pos)
+            )
+        } else {
             format!(
                 "'{word}' is approved only as {}; as {} use {}",
                 pos_names(approved),
                 pos_name(&pos),
                 list(&sense.alternatives)
-            ),
-            None,
-        );
+            )
+        };
+        return verdict("1.2", message, None);
     }
 
     if let Some((lemma, senses)) = dict.unapproved_lemma(word) {
@@ -808,7 +815,9 @@ mod tests {
           {"lemma": "wurp", "pos": "n", "status": "unapproved", "alternatives": [{"word": "gantry", "pos": "n"}]},
           {"lemma": "wurp", "pos": "adj", "status": "unapproved", "alternatives": [{"word": "wide", "pos": "adj"}]},
           {"lemma": "of", "pos": "prep", "status": "approved", "forms": ["of"]},
-          {"lemma": "at", "pos": "prep", "status": "approved", "forms": ["at"]}
+          {"lemma": "at", "pos": "prep", "status": "approved", "forms": ["at"]},
+          {"lemma": "glorp", "pos": "v", "status": "approved", "forms": ["glorp", "glorps", "glorped"]},
+          {"lemma": "glorp", "pos": "n", "status": "unapproved", "alternatives": []}
         ]}"#,
         )
         .unwrap()
@@ -895,7 +904,7 @@ mod tests {
     /// checker is not sure, and gives no finding.
     #[test]
     fn adverb_after_determiner_is_noun_or_adjective() {
-        let allow = "unit\npanel\nlever\nmove\ngive\nchange\nzero\nvalue\nit\nthen";
+        let allow = "unit\npanel\nlever\nmove\ngive\nchange\nzero\nvalue\nit\nthen\nthat";
         let noun = "'wurp' is approved only as an adverb; as a noun use 'gantry'";
         let adjective = "'wurp' is approved only as an adverb; as an adjective use 'wide'";
         assert_eq!(messages("The wurp of the unit.", allow), [noun]);
@@ -912,6 +921,18 @@ mod tests {
         assert_eq!(
             messages("Lift the frob gantry.", allow),
             ["'frob' is approved only as a verb; as an adjective use 'wide'"]
+        );
+        // After `that`, `glorp` can be the verb. The checker is not sure, and
+        // gives no finding, also when `that` points at the noun.
+        assert!(messages("Lift the gantries that glorp the dial.", "that\ndial").is_empty());
+        assert!(messages("Gantries that glorp the dial lift it.", "that\ndial\nit").is_empty());
+        assert!(messages("Lift that glorp of the gantry.", "that").is_empty());
+        // `wurp` is not a verb, thus `that` points at the adjective.
+        assert_eq!(messages("Lift that wurp panel.", allow), [adjective]);
+        // The dictionary gives no alternative for the noun `glorp`.
+        assert_eq!(
+            messages("Lift the glorp of the gantry.", ""),
+            ["'glorp' is approved only as a verb; it is not approved as a noun"]
         );
     }
 
