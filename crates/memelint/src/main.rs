@@ -99,9 +99,12 @@ fn run_check(
         .filter(|d| !d.as_os_str().is_empty())
         .unwrap_or(Path::new("."));
     let subtree = subtree_word_lists(&config, config_dir)?;
-    // One allowlist for each language and each set of word lists from
-    // `subtree-word-lists`, made when its first file comes.
-    let mut allowlists: HashMap<(String, Vec<usize>), check::Allowlist> = HashMap::new();
+    let scopes = config.scope_matchers(config_dir)?;
+    // One allowlist for each language, each set of word lists from
+    // `subtree-word-lists` and each set of scopes, made when its first file
+    // comes.
+    let mut allowlists: HashMap<(String, Vec<usize>, Vec<usize>), check::Allowlist> =
+        HashMap::new();
 
     let (mut files, mut comments, mut errors, mut warnings) = (0usize, 0usize, 0usize, 0usize);
     let (mut fixed, mut fixed_files) = (0usize, 0usize);
@@ -133,9 +136,16 @@ fn run_check(
             .filter(|(_, (dir, _))| relative(path).starts_with(dir))
             .map(|(i, _)| i)
             .collect();
-        let key = (grammar.name.clone(), lists);
+        // The scopes that name this file. The path starts at the directory
+        // of the configuration file; a file that is not below it is in no
+        // scope.
+        let in_scopes = match relative(path).strip_prefix(relative(config_dir)) {
+            Ok(in_tree) => config.scopes_of(&scopes, in_tree),
+            Err(_) => Vec::new(),
+        };
+        let key = (grammar.name.clone(), lists, in_scopes);
         if !allowlists.contains_key(&key) {
-            let mut allow = config.allowlist(&grammar.name, &config_path)?;
+            let mut allow = config.allowlist(&grammar.name, &config_path, &key.2)?;
             for &i in &key.1 {
                 allow.extend(&subtree[i].1);
             }
@@ -144,7 +154,7 @@ fn run_check(
         let allow = &allowlists[&key];
         let shown = path.strip_prefix("./").unwrap_or(path).display();
 
-        let (mut n, mut findings) = lint(&grammar, &source, &dict, allow, &config);
+        let (mut n, mut findings) = lint(&grammar, &source, &dict, allow, &config, &key.2);
         if fix {
             let fixes: Vec<&check::Fix> = findings
                 .iter()
@@ -159,7 +169,7 @@ fn run_check(
                         fixed += fixes.len();
                         fixed_files += 1;
                         // The positions of the other findings have moved.
-                        (n, findings) = lint(&grammar, &after, &dict, allow, &config);
+                        (n, findings) = lint(&grammar, &after, &dict, allow, &config, &key.2);
                     }
                     _ => eprintln!("note: {shown}: the fixes would change the code; not applied"),
                 }
@@ -291,19 +301,21 @@ fn fixable_note(safe: usize, unsafe_: usize) -> Option<String> {
 }
 
 /// The number of comments in `source`, and its findings with their
-/// severities. Findings of rules that are off are not in the list.
+/// severities in the scopes `scopes` (positions in the scopes of `config`).
+/// Findings of rules that are off are not in the list.
 fn lint(
     grammar: &grammars::Grammar,
     source: &str,
     dict: &dict::Dictionary,
     allow: &check::Allowlist,
     config: &config::Config,
+    scopes: &[usize],
 ) -> (usize, Vec<(check::Finding, config::Severity)>) {
     let comments = extract::extract(grammar, source);
     let findings = comments
         .iter()
         .flat_map(|c| check::check(c, dict, allow))
-        .filter_map(|f| match config.severity(f.rule, &grammar.name) {
+        .filter_map(|f| match config.severity(f.rule, &grammar.name, scopes) {
             config::Severity::Off => None,
             severity => Some((f, severity)),
         })

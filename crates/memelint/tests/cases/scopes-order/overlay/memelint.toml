@@ -1,0 +1,7 @@
+[scopes.parts]
+paths = ["parts/"]
+profile = "strict"
+
+[scopes.b]
+paths = ["parts/b/"]
+profile = "basic"

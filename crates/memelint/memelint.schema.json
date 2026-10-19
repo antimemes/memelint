@@ -49,6 +49,30 @@
           }
         }
       }
+    },
+    "scopes": {
+      "description": "The profile, rules and words of the paths that `paths` names. When two scopes name one file, the words of both apply, and the scope that is later in the file sets the severity.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paths"],
+        "properties": {
+          "paths": {
+            "description": "The paths of the scope, in the syntax of .gitignore, from the directory of memelint.toml.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "profile": {
+            "description": "The severity of each rule in these paths, before the rules. Default: the top-level profile.",
+            "type": "string",
+            "enum": ["strict", "basic"]
+          },
+          "rules": { "$ref": "#/$defs/rules" },
+          "words": { "$ref": "#/$defs/words" },
+          "word-lists": { "$ref": "#/$defs/word-lists" }
+        }
+      }
     }
   },
   "$defs": {

@@ -1,0 +1,7 @@
+lib.rs:3:19: error: 'frob' is approved only as a verb; as an adjective use 'wide' [STE 1.2]
+lib.rs:7:4: warning: sentence has 27 words; the STE limit for descriptive text is 25 [STE 6.3]
+main.py:8:24: error: 'don't' is a contraction; write the words in full [STE 4.2]
+sub/notes.c:1:4: warning: 'hoist' is not approved; use 'lift' [STE 1.1]
+util.go:3:21: error: 'it's' is a contraction; write the words in full [STE 4.2]
+6 files, 10 comments, 3 errors, 2 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix, and 1 more with --fix --unsafe-fixes

@@ -1,0 +1,3 @@
+parts/a/deep/x.py:1:12: error: 'sprockets' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+parts/a/lib.rs:1:13: error: 'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+5 files, 4 comments, 2 errors, 0 warnings (ASD-STE100 issue 0)

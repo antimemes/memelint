@@ -32,4 +32,17 @@ profile = "strict"
 "1.6" = "off"
 ```
 
+A scope names paths and gives them a profile and rules. Thus a project that is `basic` at the root can make `docs/` strict:
+
+```toml
+[scopes.docs]
+paths = ["docs/"]       # as in .gitignore, from the directory of memelint.toml
+profile = "strict"
+
+[scopes.docs.rules]
+"6.3" = "off"
+```
+
+In these paths, the scope rules apply first, then `[languages.<name>.rules]`, then `[rules]`, then the scope profile, then the top-level profile. When two scopes name one file, the last of them in `memelint.toml` sets the severity, and the words of the two apply.
+
 A rule that gives no findings cannot be set. memelint stops with an error message when it reads `memelint.toml`.

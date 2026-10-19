@@ -61,3 +61,5 @@ swashplate
 ```
 
 The words of a file apply to the directory of the file and to all directories below it. A glob with `*` or `**` can find no file, and that is not an error. A path without `*` or `**` must be a file, as with `word-lists`. A path that ends with `/` is an error: the key names files, not directories. You select the file name: memelint has no default name, and it reads only the files you name.
+
+A scope, `[scopes.<name>]`, also has `words` and `word-lists`, for the paths it names (see [Rules](rules.md)).

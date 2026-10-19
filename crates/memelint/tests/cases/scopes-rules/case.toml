@@ -1,0 +1,4 @@
+# The root is basic. Python has a language rule, and two scopes have rules:
+# a scope rule applies before the language rule, the scope profile and the
+# root profile.
+worktree = "findings"

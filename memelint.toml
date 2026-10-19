@@ -13,6 +13,7 @@ words = [
   "schema", # the JSON Schema of memelint.toml
   "importer", "finding", "fix", "vocabulary", "rule", "worktree",
   "overlay",
+  "scope", # a [scopes.<name>] table: paths that have a profile, rules and words
   # programs and files
   "acronym", "cargo", "comment",
   "docstring",

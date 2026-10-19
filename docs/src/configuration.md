@@ -23,6 +23,14 @@ default-word-lists = true
 
 [languages.markdown.rules]
 "1.6" = "off"
+
+[scopes.docs]                      # for the paths that `paths` names
+paths = ["docs/"]                  # as in .gitignore, from the directory of memelint.toml
+profile = "strict"
+words = ["gantry"]
+
+[scopes.docs.rules]
+"6.3" = "off"
 ```
 
 | Key | Effect |
@@ -36,5 +44,6 @@ default-word-lists = true
 | `ignore` | paths that memelint does not examine, in the syntax of `.gitignore` |
 | `languages.<name>` | the same keys for the files of one language, see [Languages](languages.md) |
 | `languages.<name>.check` | examine the files of one language (default: `true` for code, `false` for prose) |
+| `scopes.<name>` | the profile, rules and words of the paths that `paths` names, see [Rules](rules.md) |
 
 Markdown files are prose. memelint examines them only when `[languages.markdown]` has `check = true`.

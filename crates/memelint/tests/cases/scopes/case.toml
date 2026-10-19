@@ -1,0 +1,3 @@
+# A scope makes one directory strict in a basic project, and the words of a
+# second scope apply below it.
+worktree = "subtree"

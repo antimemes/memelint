@@ -1,0 +1,15 @@
+[languages.python.rules]
+"3.5" = "warning"
+
+[scopes.sub]
+paths = ["sub/"]
+profile = "strict"
+
+[scopes.sub.rules]
+"1.1" = "warning"
+
+[scopes.py]
+paths = ["main.py"]
+
+[scopes.py.rules]
+"3.5" = "off"

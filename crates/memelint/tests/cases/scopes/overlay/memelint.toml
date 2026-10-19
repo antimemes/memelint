@@ -1,0 +1,7 @@
+[scopes.a]
+paths = ["parts/a/"]
+profile = "strict"
+
+[scopes.deep]
+paths = ["parts/a/deep/"]
+words = ["sprocket"]

@@ -1,0 +1,3 @@
+# When two scopes name one file, the last of them in memelint.toml sets the
+# severity.
+worktree = "subtree"
