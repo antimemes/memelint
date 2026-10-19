@@ -12,5 +12,5 @@ main.py:8:24: error: 'don't' is a contraction; write the words in full [STE 4.2]
 main.py:9:17: error: 'frobbing' is the -ing form of 'frob'; STE allows only the infinitive, imperative, past tense and past participle [STE 3.5]
 sub/notes.c:1:4: error: 'hoist' is not approved; use 'lift' [STE 1.1]
 util.go:3:21: error: 'it's' is a contraction; write the words in full [STE 4.2]
-5 files, 10 comments, 14 errors, 0 warnings (ASD-STE100 issue 0)
+6 files, 10 comments, 14 errors, 0 warnings (ASD-STE100 issue 0)
 note: 1 findings can be fixed with --fix, and 5 more with --fix --unsafe-fixes

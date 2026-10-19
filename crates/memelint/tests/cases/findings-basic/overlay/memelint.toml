@@ -1,5 +1,3 @@
-profile = "basic"
-
 [rules]
 "4.2" = "off"
 

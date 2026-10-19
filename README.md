@@ -72,8 +72,9 @@ ASD-STE100 Issue 9 has 53 rules. A program can check a part of them. memelint ch
 Each rule has a severity: `error`, `warning` or `off`. The exit code is 1 when there is an error. The profile sets the severity of all rules, and `[rules]` changes one rule:
 
 ```toml
-profile = "basic"       # "strict" (the default) makes each finding an error.
-                        # "basic" makes 1.6 and 6.3 warnings.
+profile = "strict"      # "basic" (the default) checks the form of the writing:
+                        # 1.1 and 1.6 are off, 6.3 is a warning.
+                        # "strict" makes each finding an error.
 [rules]
 "4.2" = "off"
 

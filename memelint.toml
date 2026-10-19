@@ -1,6 +1,9 @@
 #:schema https://raw.githubusercontent.com/antimemes/memelint/main/crates/memelint/memelint.schema.json
 # memelint configuration. See README.md.
 
+# This repository is written in STE; each finding is an error.
+profile = "strict"
+
 # Technical names and verbs in the comments and documents of this
 # repository. A word goes here when it is a technical name in this domain,
 # and not when it is only easier English.

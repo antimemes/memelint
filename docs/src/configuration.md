@@ -5,7 +5,7 @@ memelint reads `memelint.toml` at the project root. Each key is optional. The fi
 ```toml
 #:schema https://raw.githubusercontent.com/antimemes/memelint/main/crates/memelint/memelint.schema.json
 
-profile = "strict"                 # "strict" or "basic"
+profile = "basic"                  # "basic" (the default) or "strict"
 words = ["gantry", "sprocket"]
 word-lists = ["words.txt", "https://example.com/team-words.txt"]
 subtree-word-lists = ["experiments/*/memelint-words.txt"]

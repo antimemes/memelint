@@ -7,7 +7,8 @@
   "additionalProperties": false,
   "properties": {
     "profile": {
-      "description": "The severity of each rule before `rules`. strict: each finding is an error. basic: unknown words (1.6) and long sentences (6.3) are warnings. Default: strict.",
+      "description": "The severity of each rule before `rules`. basic (the default): unapproved words (1.1) and unknown words (1.6) are off, long sentences (6.3) are warnings. strict: each finding is an error.",
+      "default": "basic",
       "type": "string",
       "enum": ["strict", "basic"]
     },

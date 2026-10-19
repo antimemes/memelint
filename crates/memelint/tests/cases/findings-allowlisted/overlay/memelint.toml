@@ -1,2 +1,4 @@
 # part names, and one action
 words = ["sprocket", "blorp", "zap", "zorch up"]
+
+profile = "strict"

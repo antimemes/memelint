@@ -1,7 +1,7 @@
 //! The project configuration: `memelint.toml` at the project root.
 //!
 //! ```toml
-//! profile = "strict"                           # or "basic"
+//! profile = "basic"                            # or "strict"
 //! words = ["gantry", "sprocket"]               # for all files
 //! word-lists = ["words.txt", "https://example.com/team-words.txt"]
 //! subtree-word-lists = ["experiments/*/memelint-words.txt"]
@@ -33,8 +33,10 @@
 //!
 //! The profile gives each rule a severity. `[rules]` changes it for one
 //! rule, and `[languages.<name>.rules]` for one rule in one language.
-//! `strict` makes each finding an error. `basic` makes unknown words (1.6)
-//! and long sentences (6.3) warnings.
+//! `basic`, the default, checks the form of the writing, and no word list is
+//! necessary. Unapproved words (1.1) and unknown words (1.6) are off, and
+//! long sentences (6.3) are warnings. `strict` adds the controlled
+//! vocabulary, with the word list of the project: each finding is an error.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -67,8 +69,8 @@ pub enum Severity {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
 pub struct Config {
-    /// The severity of each rule, before `rules`. Default: strict.
-    #[serde(default = "strict")]
+    /// The severity of each rule, before `rules`. Default: basic.
+    #[serde(default = "basic")]
     pub profile: Profile,
     /// The severity of one rule, by ASD-STE100 rule id.
     #[serde(default)]
@@ -123,8 +125,8 @@ fn yes() -> bool {
     true
 }
 
-fn strict() -> Profile {
-    Profile::Strict
+fn basic() -> Profile {
+    Profile::Basic
 }
 
 impl Config {
@@ -183,7 +185,8 @@ impl Config {
             return *s;
         }
         match (self.profile, rule) {
-            (Profile::Basic, "1.6" | "6.3") => Severity::Warning,
+            (Profile::Basic, "1.1" | "1.6") => Severity::Off,
+            (Profile::Basic, "6.3") => Severity::Warning,
             _ => Severity::Error,
         }
     }
@@ -325,7 +328,7 @@ mod tests {
     fn parses_all_fields() {
         let c = config(
             r#"
-            profile = "basic"
+            profile = "strict"
             words = ["gantry", "sprocket"]
             word-lists = ["more.txt", "https://example.com/w.txt"]
             subtree-word-lists = ["experiments/*/memelint-words.txt"]
@@ -345,7 +348,7 @@ mod tests {
             "1.6" = "warning"
             "#,
         );
-        assert_eq!(c.profile, Profile::Basic);
+        assert_eq!(c.profile, Profile::Strict);
         assert_eq!(c.rules["6.3"], Severity::Off);
         assert_eq!(c.words, ["gantry", "sprocket"]);
         assert_eq!(c.word_lists, ["more.txt", "https://example.com/w.txt"]);
@@ -379,13 +382,22 @@ mod tests {
 
     #[test]
     fn severities() {
+        // The default profile is basic.
         let c = Config::default();
-        assert_eq!(c.severity("1.1", "rust"), Severity::Error);
-        assert_eq!(c.severity("6.3", "rust"), Severity::Error);
-        let c = config("profile = \"basic\"");
-        assert_eq!(c.severity("1.1", "rust"), Severity::Error);
-        assert_eq!(c.severity("1.6", "rust"), Severity::Warning);
+        assert_eq!(c.profile, Profile::Basic);
+        assert_eq!(c.severity("1.1", "rust"), Severity::Off);
+        assert_eq!(c.severity("1.6", "rust"), Severity::Off);
         assert_eq!(c.severity("6.3", "rust"), Severity::Warning);
+        assert_eq!(c.severity("4.2", "rust"), Severity::Error);
+        let c = config("profile = \"basic\"");
+        assert_eq!(c.severity("1.1", "rust"), Severity::Off);
+        assert_eq!(c.severity("1.6", "rust"), Severity::Off);
+        assert_eq!(c.severity("6.3", "rust"), Severity::Warning);
+        assert_eq!(c.severity("4.2", "rust"), Severity::Error);
+        let c = config("profile = \"strict\"");
+        assert_eq!(c.severity("1.1", "rust"), Severity::Error);
+        assert_eq!(c.severity("1.6", "rust"), Severity::Error);
+        assert_eq!(c.severity("6.3", "rust"), Severity::Error);
         let c = config("[rules]\n\"1.1\" = \"off\"\n\"6.3\" = \"warning\"");
         assert_eq!(c.severity("1.1", "rust"), Severity::Off);
         assert_eq!(c.severity("6.3", "rust"), Severity::Warning);
@@ -398,7 +410,7 @@ mod tests {
             config("[rules]\n\"1.6\" = \"warning\"\n[languages.markdown.rules]\n\"1.6\" = \"off\"");
         assert_eq!(c.severity("1.6", "markdown"), Severity::Off);
         assert_eq!(c.severity("1.6", "rust"), Severity::Warning);
-        assert_eq!(c.severity("1.1", "markdown"), Severity::Error);
+        assert_eq!(c.severity("4.2", "markdown"), Severity::Error);
     }
 
     #[test]

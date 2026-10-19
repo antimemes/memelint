@@ -15,13 +15,15 @@ Each rule has a severity: `error`, `warning` or `off`. The exit code is 1 when t
 
 | Profile | Effect |
 |---|---|
-| `strict` (the default) | each finding is an error |
-| `basic` | 1.6 and 6.3 are warnings |
+| `basic` (the default) | 1.1 and 1.6 are off, 6.3 is a warning |
+| `strict` | each finding is an error |
+
+The basic profile checks the form of the writing, and no word list is necessary. The strict profile also checks the vocabulary, with the word list of the project.
 
 `[rules]` changes one rule, and `[languages.<name>.rules]` changes it for the files of one language. The language value applies first, then `[rules]`, then the profile:
 
 ```toml
-profile = "basic"
+profile = "strict"
 
 [rules]
 "4.2" = "off"

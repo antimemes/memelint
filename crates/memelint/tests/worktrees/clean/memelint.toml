@@ -1,2 +1,4 @@
 # part names
 words = ["sprocket"]
+
+profile = "strict"
