@@ -1,0 +1,3 @@
+# The findings of `a/b.py` come before the findings of `a-c.py`. The sort
+# compares each part of a path, and not the full text of the path.
+worktree = "order"

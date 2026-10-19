@@ -5,7 +5,8 @@
 //! `expected.txt` is the output of memelint: the findings (stdout), then the
 //! summary and the notes (stderr). The exit status must be 1 when the summary
 //! counts errors and 0 if it does not. The number of finding lines must
-//! agree with the summary.
+//! agree with the summary. A second run with `RAYON_NUM_THREADS=1` must give
+//! the same output.
 //!
 //! Before the run, we make a copy of the worktree in a work directory. We put
 //! the files of the `overlay/` directory of the case, if there is one, on
@@ -69,16 +70,21 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
     let case: Case = toml::from_str(&fs::read_to_string(case_dir.join("case.toml"))?)?;
 
     let work = std::env::temp_dir().join(format!("memelint-case-{name}"));
-    let _ = fs::remove_dir_all(&work);
-    copy_tree(&tests.join("worktrees").join(&case.worktree), &work)?;
     let overlay = case_dir.join("overlay");
-    if overlay.is_dir() {
-        copy_tree(&overlay, &work)?;
-    }
+    let copy = || -> std::io::Result<()> {
+        let _ = fs::remove_dir_all(&work);
+        copy_tree(&tests.join("worktrees").join(&case.worktree), &work)?;
+        if overlay.is_dir() {
+            copy_tree(&overlay, &work)?;
+        }
+        Ok(())
+    };
+    copy()?;
 
     // No input from this machine: no grammar directory, and no dictionary
     // other than the fixture. Thus the output is the same on all machines.
-    let output = Command::new(env!("CARGO_BIN_EXE_memelint"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_memelint"));
+    command
         .arg("check")
         .arg("--vocab")
         .arg(tests.join("dict.json"))
@@ -86,8 +92,9 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
         .current_dir(&work)
         .env_remove("MEMELINT_VOCAB")
         .env_remove("MEMELINT_GRAMMARS")
-        .env("XDG_DATA_HOME", "/nonexistent")
-        .output()?;
+        .env_remove("RAYON_NUM_THREADS")
+        .env("XDG_DATA_HOME", "/nonexistent");
+    let output = command.output()?;
     let stdout = String::from_utf8(output.stdout)?;
     let stderr = String::from_utf8(output.stderr)?;
     let actual = format!("{stdout}{stderr}");
@@ -146,6 +153,19 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
                 .into());
             }
         }
+    }
+
+    // Run `check` again on one thread. The output must be the same. `--fix`
+    // changed the files, thus make a new copy first.
+    copy()?;
+    let one = command.env("RAYON_NUM_THREADS", "1").output()?;
+    if one.stdout != stdout.as_bytes() || one.stderr != stderr.as_bytes() {
+        return Err(format!(
+            "output with RAYON_NUM_THREADS=1 differs:\n{}{}",
+            String::from_utf8_lossy(&one.stdout),
+            String::from_utf8_lossy(&one.stderr)
+        )
+        .into());
     }
     Ok(())
 }
