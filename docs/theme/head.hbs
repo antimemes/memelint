@@ -1,9 +1,17 @@
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ book_title }}">
+<meta property="og:title" content="{{#if chapter_title}}{{ chapter_title }}{{else}}{{ title }}{{/if}}">
+<meta property="og:description" content="{{ description }}">
+<meta name="twitter:card" content="summary">
 {{!-- mdBook writes the first chapter twice, as index.html and as its own
-page. Point both at the site root so search engines index only one copy. --}}
+page. Point both at the site root so search engines index only one copy.
+The template knows only the Markdown path of other pages, so they get no
+og:url and no canonical. --}}
 {{#unless previous}}
 {{#unless is_print}}
 {{#unless (eq path "404.md")}}
 <link rel="canonical" href="https://memelint.antimemetics.institute/">
+<meta property="og:url" content="https://memelint.antimemetics.institute/">
 {{/unless}}
 {{/unless}}
 {{/unless}}
