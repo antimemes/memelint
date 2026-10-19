@@ -1,0 +1,3 @@
+# A word that is approved as one part of speech, used as a different part
+# of speech: `back` is approved only as an adverb.
+worktree = "parts-of-speech"

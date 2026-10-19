@@ -709,6 +709,119 @@
       "forms": [
         "into"
       ]
+    },
+    {
+      "lemma": "back",
+      "pos": "adv",
+      "status": "approved",
+      "forms": [
+        "back"
+      ]
+    },
+    {
+      "lemma": "back",
+      "pos": "n",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "rear",
+          "pos": "n"
+        }
+      ]
+    },
+    {
+      "lemma": "back",
+      "pos": "adj",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "rear",
+          "pos": "adj"
+        }
+      ]
+    },
+    {
+      "lemma": "rear",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "rear"
+      ]
+    },
+    {
+      "lemma": "rear",
+      "pos": "adj",
+      "status": "approved",
+      "forms": [
+        "rear"
+      ]
+    },
+    {
+      "lemma": "move",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "move",
+        "moves",
+        "moved"
+      ]
+    },
+    {
+      "lemma": "give",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "give",
+        "gives",
+        "gave",
+        "given"
+      ]
+    },
+    {
+      "lemma": "change",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "change",
+        "changes",
+        "changed"
+      ]
+    },
+    {
+      "lemma": "lever",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "lever",
+        "levers"
+      ]
+    },
+    {
+      "lemma": "unit",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "unit",
+        "units"
+      ]
+    },
+    {
+      "lemma": "panel",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "panel",
+        "panels"
+      ]
+    },
+    {
+      "lemma": "zero",
+      "pos": "n",
+      "status": "approved",
+      "forms": [
+        "zero"
+      ]
     }
   ]
 }
+

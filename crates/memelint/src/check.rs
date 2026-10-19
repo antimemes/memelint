@@ -375,6 +375,12 @@ fn used_as_unapproved(
         "the", "a", "an", "this", "that", "these", "those", "its", "your", "our", "their", "each",
         "no", "of", "one",
     ];
+    // Words after which a noun does not come. Before one of these, the word
+    // is the noun, not the adjective, as in `at the rear of`.
+    const PREPOSITION_OR_CONJUNCTION_CUES: &[&str] = &[
+        "of", "to", "in", "on", "at", "from", "into", "with", "for", "by", "and", "or", "but",
+        "then", "if", "when", "until", "is", "are", "was", "were",
+    ];
     let has = |list: &[String], pos: &str| list.iter().any(|p| p == pos);
 
     // `close to` is the adjective or the adverb. The other parts of speech of
@@ -382,6 +388,7 @@ fn used_as_unapproved(
     if next == Some("to")
         && (has(unapproved, "adj") || has(unapproved, "adv"))
         && !has(approved, "adj")
+        && !has(approved, "adv")
     {
         return unapproved
             .iter()
@@ -393,6 +400,24 @@ fn used_as_unapproved(
     }
     if has(approved, "n") && prev.is_some_and(|p| NOUN_CUES.contains(&p)) {
         return None;
+    }
+    // After `the` or `its`, a word is a noun or an adjective. When the
+    // word is not approved as a noun or as an adjective, this is
+    // unapproved. The word is the adjective when a word follows that
+    // can be its noun, as in `the rear panel`, and the noun in `the rear` and
+    // `the rear of`.
+    if !has(approved, "n")
+        && !has(approved, "adj")
+        && (has(unapproved, "n") || has(unapproved, "adj"))
+        && prev.is_some_and(|p| NOUN_CUES.contains(&p))
+    {
+        let noun_follows = next.is_some_and(|n| !PREPOSITION_OR_CONJUNCTION_CUES.contains(&n));
+        let pos = match (has(unapproved, "n"), has(unapproved, "adj")) {
+            (true, true) if noun_follows => "adj",
+            (true, _) => "n",
+            _ => "adj",
+        };
+        return Some(pos.to_string());
     }
     // Not sure: do not flag.
     None
@@ -596,7 +621,10 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
             continue;
         }
         let prev = i.checked_sub(1).and_then(|j| tokens[j].word.as_deref());
-        let next = tokens.get(i + 1).and_then(|t| t.word.as_deref());
+        let next = tokens
+            .get(i + 1)
+            .filter(|t| !t.starts_sentence)
+            .and_then(|t| t.word.as_deref());
         // A word with hyphens that the dictionary lists, for example
         // `left-hand`, is examined as one word. If the dictionary does not
         // list it, each part is examined.
@@ -604,7 +632,7 @@ pub fn check(comment: &Comment, dict: &Dictionary, allow: &Allowlist) -> Vec<Fin
         let verdict = if whole {
             judge(word, prev, next, tok.starts_sentence, dict, allow)
         } else {
-            judge_parts(word, prev, next, tok.starts_sentence, dict, allow)
+            judge_parts(word, tok.starts_sentence, dict, allow)
         };
         if let Some(verdict) = verdict {
             let mut f = finding(verdict.rule, tok.start, verdict.message);
@@ -644,8 +672,6 @@ const PREFIXES: &[&str] = &[
 /// breaks a rule gives the result.
 fn judge_parts(
     word: &str,
-    prev: Option<&str>,
-    next: Option<&str>,
     starts_sentence: bool,
     dict: &Dictionary,
     allow: &Allowlist,
@@ -669,7 +695,10 @@ fn judge_parts(
                 continue;
             }
         }
-        if let Some(verdict) = judge(part, prev, next, starts_sentence, dict, allow) {
+        // The words around the full word are not cues for its parts. `the`
+        // before `non-frob` is not a cue for `frob`.
+        let starts_sentence = starts_sentence && i == 0;
+        if let Some(verdict) = judge(part, None, None, starts_sentence, dict, allow) {
             return Some(verdict);
         }
     }
@@ -774,7 +803,12 @@ mod tests {
           {"lemma": "zorch-free", "pos": "adj", "status": "unapproved", "alternatives": [{"word": "wide", "pos": "adj"}]},
           {"lemma": "hoist-wide", "pos": "adj", "status": "approved", "forms": ["hoist-wide"]},
           {"lemma": "re-", "headword": "re-", "pos": "prefix", "status": "unapproved", "notes": ["Use the basic word with 'again'."]},
-          {"lemma": "snarf", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}], "notes": ["A more exact verb is better"]}
+          {"lemma": "snarf", "pos": "v", "status": "unapproved", "alternatives": [{"word": "lift", "pos": "v"}], "notes": ["A more exact verb is better"]},
+          {"lemma": "wurp", "pos": "adv", "status": "approved", "forms": ["wurp"]},
+          {"lemma": "wurp", "pos": "n", "status": "unapproved", "alternatives": [{"word": "gantry", "pos": "n"}]},
+          {"lemma": "wurp", "pos": "adj", "status": "unapproved", "alternatives": [{"word": "wide", "pos": "adj"}]},
+          {"lemma": "of", "pos": "prep", "status": "approved", "forms": ["of"]},
+          {"lemma": "at", "pos": "prep", "status": "approved", "forms": ["at"]}
         ]}"#,
         )
         .unwrap()
@@ -852,6 +886,31 @@ mod tests {
         // `frob to` reads as the adjective, which is unapproved.
         assert_eq!(
             messages("The gantry is frob to the wall.", "wall"),
+            ["'frob' is approved only as a verb; as an adjective use 'wide'"]
+        );
+    }
+
+    /// `wurp` is approved only as an adverb. After `the` it is the noun or
+    /// the adjective, which are unapproved. In the other positions the
+    /// checker is not sure, and gives no finding.
+    #[test]
+    fn adverb_after_determiner_is_noun_or_adjective() {
+        let allow = "unit\npanel\nlever\nmove\ngive\nchange\nzero\nvalue\nit\nthen";
+        let noun = "'wurp' is approved only as an adverb; as a noun use 'gantry'";
+        let adjective = "'wurp' is approved only as an adverb; as an adjective use 'wide'";
+        assert_eq!(messages("The wurp of the unit.", allow), [noun]);
+        assert_eq!(messages("Lift it at the wurp.", allow), [noun]);
+        assert_eq!(messages("Lift the wurp, then frob the gantry.", allow), [noun]);
+        assert_eq!(messages("The wurp panel.", allow), [adjective]);
+        assert_eq!(messages("Lift its wurp panel.", allow), [adjective]);
+        assert!(messages("Move the lever wurp.", allow).is_empty());
+        assert!(messages("Give wurp the value.", allow).is_empty());
+        assert!(messages("Change it wurp to zero.", allow).is_empty());
+        // The next sentence is no cue.
+        assert_eq!(messages("Lift the wurp. Frob the gantry.", allow), [noun]);
+        // A verb after `the` that is unapproved as an adjective.
+        assert_eq!(
+            messages("Lift the frob gantry.", allow),
             ["'frob' is approved only as a verb; as an adjective use 'wide'"]
         );
     }
