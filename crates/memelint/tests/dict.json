@@ -827,6 +827,43 @@
       "forms": [
         "zero"
       ]
+    },
+    {
+      "lemma": "break",
+      "pos": "v",
+      "status": "approved",
+      "forms": [
+        "break",
+        "breaks",
+        "broke",
+        "broken"
+      ]
+    },
+    {
+      "lemma": "break",
+      "pos": "n",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "stop",
+          "pos": "v"
+        }
+      ]
+    },
+    {
+      "lemma": "true",
+      "pos": "adj",
+      "status": "unapproved",
+      "alternatives": [
+        {
+          "word": "correct",
+          "pos": "adj"
+        },
+        {
+          "word": "agree",
+          "pos": "v"
+        }
+      ]
     }
   ]
 }

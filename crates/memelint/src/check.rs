@@ -379,6 +379,17 @@ fn used_as_unapproved(
         "the", "a", "an", "this", "that", "these", "those", "its", "your", "our", "their", "each",
         "no", "of", "one",
     ];
+    // After one of these words, a word is a noun or an adjective. `this` and
+    // `these` are not in the list, because they are approved as pronouns and
+    // as adjectives. `that` and `those` are not in the list, because they are
+    // not approved as adjectives. Before a verb or an adverb, these four
+    // words are pronouns, as in `set this back to true` and `these break the
+    // build`. In nixpkgs, these four words gave 12 findings, and 8 of them
+    // were not correct. The other words gave 109 findings, and all of them
+    // were correct.
+    const DETERMINER_CUES: &[&str] = &[
+        "the", "a", "an", "its", "your", "our", "their", "each", "no", "of", "one",
+    ];
     // Words after which a noun does not come. Before one of these, the word
     // is the noun, not the adjective, as in `at the rear of`.
     const PREPOSITION_OR_CONJUNCTION_CUES: &[&str] = &[
@@ -413,9 +424,7 @@ fn used_as_unapproved(
     if !has(approved, "n")
         && !has(approved, "adj")
         && (has(unapproved, "n") || has(unapproved, "adj"))
-        // A verb can come after `that`, as in `parts that use the runner`.
-        // Thus for a word that is approved as a verb, `that` is not a cue.
-        && prev.is_some_and(|p| NOUN_CUES.contains(&p) && !(p == "that" && has(approved, "v")))
+        && prev.is_some_and(|p| DETERMINER_CUES.contains(&p))
     {
         let noun_follows = next.is_some_and(|n| !PREPOSITION_OR_CONJUNCTION_CUES.contains(&n));
         let pos = match (has(unapproved, "n"), has(unapproved, "adj")) {
@@ -931,8 +940,14 @@ mod tests {
         assert!(messages("Lift the gantries that glorp the dial.", "that\ndial").is_empty());
         assert!(messages("Gantries that glorp the dial lift it.", "that\ndial\nit").is_empty());
         assert!(messages("Lift that glorp of the gantry.", "that").is_empty());
-        // `wurp` is not a verb, thus `that` points at the adjective.
-        assert_eq!(messages("Lift that wurp panel.", allow), [adjective]);
+        // `this`, `these`, `that` and `those` can be pronouns. Thus they are
+        // not cues, also when the word is not a verb.
+        assert!(messages("Lift that wurp panel.", allow).is_empty());
+        assert!(messages("Set this wurp to true.", "set\nthis\ntrue").is_empty());
+        assert!(messages("These frob the gantry.", "these").is_empty());
+        assert!(messages("Change this wurp to the default.", "change\nthis\ndefault").is_empty());
+        // `each` is a cue.
+        assert_eq!(messages("Lift each wurp panel.", "each\npanel"), [adjective]);
         // The dictionary gives no alternative for the noun `glorp`.
         assert_eq!(
             messages("Lift the glorp of the gantry.", ""),
