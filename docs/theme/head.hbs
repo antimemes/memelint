@@ -1,0 +1,9 @@
+{{!-- mdBook writes the first chapter twice, as index.html and as its own
+page. Point both at the site root so search engines index only one copy. --}}
+{{#unless previous}}
+{{#unless is_print}}
+{{#unless (eq path "404.md")}}
+<link rel="canonical" href="https://memelint.antimemetics.institute/">
+{{/unless}}
+{{/unless}}
+{{/unless}}
