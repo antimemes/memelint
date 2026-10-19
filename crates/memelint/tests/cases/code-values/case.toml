@@ -1,0 +1,3 @@
+# A word that is also a value in code. The message tells the writer to write
+# it as code, and memelint does not examine code in a comment.
+worktree = "code-values"

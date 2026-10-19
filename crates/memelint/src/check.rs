@@ -476,6 +476,17 @@ fn pos_names(list: &[String]) -> String {
         .join(" or ")
 }
 
+/// Words that are also values in code. In a comment, such a word is
+/// usually the value. Thus the message tells the writer to write it as
+/// code, which memelint does not examine.
+const CODE_VALUES: &[&str] = &["true", "false", "null", "nil", "none", "undefined"];
+
+/// The code value that `word` is, if it is one.
+fn code_value(word: &str) -> Option<&'static str> {
+    let word = word.to_lowercase();
+    CODE_VALUES.iter().copied().find(|v| *v == word)
+}
+
 /// The message for an unapproved word. It gives the alternatives, and the
 /// parts of speech in which the same word is approved, for example as a
 /// technical name. The notes of the spec come last, as full sentences.
@@ -490,8 +501,17 @@ fn unapproved_message(word: &str, lemma: &str, senses: &[Sense]) -> String {
     dedup(&mut alts);
     dedup(&mut same);
     let mut message = format!("{shown} is not approved");
+    let value = code_value(word).or_else(|| code_value(lemma));
+    if let Some(value) = value {
+        message.push_str(&format!("; if it is the value, write `{value}`"));
+    }
     if !alts.is_empty() {
-        message.push_str(&format!("; use {}", list(&alts)));
+        let lead = if value.is_some() {
+            "if not, use"
+        } else {
+            "use"
+        };
+        message.push_str(&format!("; {lead} {}", list(&alts)));
     }
     if !same.is_empty() {
         message.push_str(&format!("; it is approved only as {}", pos_names(&same)));
@@ -781,10 +801,13 @@ fn judge(
         );
     }
 
+    let value = code_value(word)
+        .map(|v| format!("; if it is the value, write `{v}`"))
+        .unwrap_or_default();
     verdict(
         "1.6",
         format!(
-            "'{word}' is not in the STE dictionary; if it is a technical name, add it to {CONFIG_FILE}"
+            "'{word}' is not in the STE dictionary{value}; if it is a technical name, add it to {CONFIG_FILE}"
         ),
         None,
     )
@@ -830,7 +853,8 @@ mod tests {
           {"lemma": "of", "pos": "prep", "status": "approved", "forms": ["of"]},
           {"lemma": "at", "pos": "prep", "status": "approved", "forms": ["at"]},
           {"lemma": "glorp", "pos": "v", "status": "approved", "forms": ["glorp", "glorps", "glorped"]},
-          {"lemma": "glorp", "pos": "n", "status": "unapproved", "alternatives": []}
+          {"lemma": "glorp", "pos": "n", "status": "unapproved", "alternatives": []},
+          {"lemma": "true", "pos": "adj", "status": "unapproved", "alternatives": [{"word": "correct", "pos": "adj"}]}
         ]}"#,
         )
         .unwrap()
@@ -887,6 +911,32 @@ mod tests {
         assert_eq!(
             messages("Zorch up the gantry.", ""),
             ["'zorch up' is not approved; use 'lift'"]
+        );
+    }
+
+    /// A word that is also a value in code gets the code form first.
+    /// The messages for other words do not change.
+    #[test]
+    fn code_value_gets_backtick_form() {
+        assert_eq!(
+            messages("The gantry is true.", ""),
+            ["'true' is not approved; if it is the value, write `true`; if not, use 'correct'"]
+        );
+        assert_eq!(
+            messages("The gantry is nil.", ""),
+            [
+                "'nil' is not in the STE dictionary; if it is the value, write `nil`; if it is a technical name, add it to memelint.toml"
+            ]
+        );
+        assert_eq!(
+            messages("Hoist the gantry.", ""),
+            ["'hoist' is not approved; use 'lift'"]
+        );
+        assert_eq!(
+            messages("Lift the sprocket.", ""),
+            [
+                "'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml"
+            ]
         );
     }
 
