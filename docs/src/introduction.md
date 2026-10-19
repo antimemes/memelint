@@ -69,3 +69,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: antimemes/memelint@latest
 ```
+
+memelint is a project of the [Antimemetics Institute](https://antimemetics.institute).

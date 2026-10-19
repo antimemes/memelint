@@ -67,6 +67,7 @@ words = [
   "derivation", "flake", "tarball", "glob", "software",
   "severity", "strict", "profile", "documentation", "editor", "curl", "sh", "linux", "macos",
   "direnv", "meme",
+  "antimemetics", "institute", # the Antimemetics Institute, which makes this project
 ]
 
 # The fixture worktrees have prose that does not follow the rules, as a test.

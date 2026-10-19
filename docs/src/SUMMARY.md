@@ -1,6 +1,6 @@
 # Summary
 
-- [memelint](introduction.md)
+- [Lint comments against Simplified Technical English](introduction.md)
 - [Configuration](configuration.md)
   - [Words](words.md)
   - [Rules](rules.md)

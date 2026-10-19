@@ -130,3 +130,5 @@ nix-shell
 ## License
 
 MIT or Apache-2.0, as you select. This applies to the code, the tests and this document. It does not apply to the vocabulary file, which comes from a document of ASD that we do not supply.
+
+memelint is a project of the [Antimemetics Institute](https://antimemetics.institute).

@@ -1,6 +1,7 @@
 [book]
 title = "memelint"
 language = "en"
+description = "memelint checks comments, docstrings and documentation against Simplified Technical English (ASD-STE100), with an allowlist for the vocabulary of your project."
 
 [output.html]
 git-repository-url = "https://github.com/antimemes/memelint"
