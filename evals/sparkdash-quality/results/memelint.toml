@@ -1,0 +1,5 @@
+# memelint for the Quality prompts (tools/memelint_suite.py)
+profile = "basic"
+
+[languages.markdown]
+check = true

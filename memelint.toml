@@ -71,7 +71,12 @@ words = [
 ]
 
 # The fixture worktrees have prose that does not follow the rules, as a test.
-ignore = ["crates/memelint/tests/worktrees/", "crates/memelint/tests/cases/*/fixed/"]
+# Each results/ and harness/ directory in evals/ is a record. It has text that
+# does not follow the rules, and copies of programs, which must not change.
+ignore = [
+  "crates/memelint/tests/worktrees/", "crates/memelint/tests/cases/*/fixed/",
+  "evals/*/results/", "evals/*/harness/",
+]
 
 # The README and the documentation use one verb that is not approved. It is
 # in them for its meaning, and only there.
@@ -79,3 +84,13 @@ ignore = ["crates/memelint/tests/worktrees/", "crates/memelint/tests/cases/*/fix
 # The documentation of this project is written in STE.
 check = true
 words = ["spread"]
+
+# The technical names of the records in evals/.
+[scopes.evals]
+paths = ["evals/"]
+words = [
+  "model", "prompt", "bench", "suite", "engine", "docker", "proxy",
+  "question", "answer", "reply", "score", "rewrite", "rewritten",
+  "guard", "protected", # names in the programs of a record
+  "exact", "two-sided", "median", "min",
+]

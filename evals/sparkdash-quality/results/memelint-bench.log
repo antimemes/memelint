@@ -1,0 +1,133 @@
+13:20:06 proxy 127.0.0.1:8899 -> http://127.0.0.1:8888: 807 prompts, 387 corrected
+13:20:06 spark1 llmPorts [8888] -> [8888, 8899]
+13:20:06 started quality-bench 88a0529b-6ba3-4165-b30a-850ddbb302b3 {"port": 8899, "categories": ["qa", "reason", "arith", "track", "gsm8k", "mmlu", "follow", "long"], "longSizes": [8192, 16384, 32768, 65536, 131072, 262144], "longItems": 2, "concurrency": 8, "label": "memelint"}
+13:20:36 running 150/807 Reasoning… 92
+13:21:06 running 153/807 Reasoning… 96
+13:21:36 running 157/807 Reasoning… 96
+13:22:06 running 165/807 Reasoning… 96
+13:22:36 running 171/807 Reasoning… 96
+13:23:06 running 175/807 Reasoning… 96
+13:23:36 running 180/807 Reasoning… 96
+13:24:06 running 188/807 Reasoning… 96
+13:24:36 running 190/807 Arithmetic chain… 96
+13:25:06 running 197/807 Arithmetic chain… 97.3
+13:25:36 running 203/807 Arithmetic chain… 97.3
+13:26:06 running 210/807 Arithmetic chain… 97.3
+13:26:36 running 217/807 Arithmetic chain… 97.3
+13:27:06 running 224/807 Arithmetic chain… 97.3
+13:27:36 running 230/807 State tracking… 97.3
+13:28:06 running 230/807 State tracking… 97.3
+13:28:36 running 233/807 State tracking… 98
+13:29:06 running 236/807 State tracking… 98
+13:29:36 running 239/807 State tracking… 98
+13:30:06 running 241/807 State tracking… 98
+13:30:36 running 243/807 State tracking… 98
+13:31:06 running 244/807 State tracking… 98
+13:31:36 running 247/807 State tracking… 98
+13:32:06 running 249/807 State tracking… 98
+13:32:36 running 253/807 State tracking… 98
+13:33:06 running 255/807 State tracking… 98
+13:33:36 running 256/807 State tracking… 98
+13:34:06 running 259/807 State tracking… 98
+13:34:36 running 262/807 State tracking… 98
+13:35:06 running 264/807 State tracking… 98
+13:35:36 running 269/807 State tracking… 98
+13:36:06 running 269/807 State tracking… 98
+13:36:36 running 269/807 State tracking… 98
+13:37:06 running 274/807 GSM8K… 98.4
+13:37:36 running 287/807 GSM8K… 98.4
+13:38:06 running 299/807 GSM8K… 98.4
+13:38:36 running 312/807 GSM8K… 98.4
+13:39:06 running 320/807 GSM8K… 98.4
+13:39:36 running 334/807 GSM8K… 98.4
+13:40:06 running 346/807 GSM8K… 98.4
+13:40:36 running 357/807 GSM8K… 98.4
+13:41:06 running 366/807 GSM8K… 98.4
+13:41:36 running 378/807 GSM8K… 98.4
+13:42:06 running 388/807 GSM8K… 98.4
+13:42:36 running 395/807 GSM8K… 98.4
+13:43:06 running 402/807 GSM8K… 98.4
+13:43:36 running 409/807 GSM8K… 98.3
+13:44:06 running 414/807 GSM8K… 98.1
+13:44:36 running 419/807 GSM8K… 98.1
+13:45:06 running 425/807 GSM8K… 98.1
+13:45:36 running 430/807 GSM8K… 98
+13:46:06 running 438/807 GSM8K… 98
+13:46:36 running 444/807 GSM8K… 98.1
+13:47:06 running 449/807 GSM8K… 98.1
+13:47:36 running 457/807 GSM8K… 98.1
+13:48:06 running 466/807 GSM8K… 98.1
+13:48:36 running 466/807 GSM8K… 98.1
+13:49:06 running 466/807 GSM8K… 98.1
+13:49:36 running 466/807 GSM8K… 98.1
+13:50:06 running 466/807 GSM8K… 98.1
+13:50:36 running 469/807 GSM8K… 97.8
+13:51:06 running 470/807 MMLU… 97.8
+13:51:36 running 477/807 MMLU… 98.2
+13:52:06 running 485/807 MMLU… 98.2
+13:52:36 running 493/807 MMLU… 96.7
+13:53:06 running 501/807 MMLU… 96.6
+13:53:36 running 507/807 MMLU… 96.8
+13:54:06 running 513/807 MMLU… 96.6
+13:54:36 running 520/807 MMLU… 96.8
+13:55:06 running 529/807 MMLU… 96.8
+13:55:36 running 537/807 MMLU… 96.9
+13:56:06 running 543/807 MMLU… 97
+13:56:36 running 553/807 MMLU… 96.4
+13:57:06 running 562/807 MMLU… 96.4
+13:57:36 running 572/807 MMLU… 96.4
+13:58:06 running 578/807 MMLU… 96.3
+13:58:36 running 590/807 MMLU… 96.4
+13:59:06 running 595/807 MMLU… 96.3
+13:59:36 running 604/807 MMLU… 96.4
+14:00:06 running 612/807 MMLU… 96.5
+14:00:36 running 618/807 MMLU… 96.6
+14:01:06 running 624/807 MMLU… 96.6
+14:01:36 running 635/807 MMLU… 96.3
+14:02:06 running 643/807 MMLU… 96.3
+14:02:36 running 656/807 MMLU… 96.5
+14:03:06 running 665/807 MMLU… 96.5
+14:03:36 running 677/807 MMLU… 96.5
+14:04:06 running 685/807 MMLU… 96.5
+14:04:36 running 694/807 MMLU… 96.5
+14:05:06 running 702/807 MMLU… 96.6
+14:05:36 running 708/807 MMLU… 96.6
+14:06:06 running 712/807 MMLU… 96.6
+14:06:36 running 719/807 MMLU… 96.7
+14:07:06 running 729/807 MMLU… 96.7
+14:07:36 running 740/807 MMLU… 96.7
+14:08:06 running 753/807 MMLU… 96.6
+14:08:36 running 766/807 Instruction following… 95.7
+14:09:06 running 786/807 Instruction following… 96.6
+14:09:36 running 796/807 Long-context recall 8k… 96.8
+14:10:06 running 798/807 Long-context recall 16k… 96.8
+14:10:36 running 799/807 Long-context recall 32k… 96.8
+14:11:06 running 800/807 Long-context recall 32k… 96.8
+14:11:37 running 801/807 Long-context recall 64k… 96.8
+14:12:07 running 802/807 Long-context recall 64k… 96.8
+14:12:37 running 802/807 Long-context recall 64k… 96.8
+14:13:07 running 803/807 Long-context recall 128k… 96.8
+14:13:37 running 803/807 Long-context recall 128k… 96.8
+14:14:07 running 803/807 Long-context recall 128k… 96.8
+14:14:37 running 804/807 Long-context recall 128k… 96.8
+14:15:07 running 804/807 Long-context recall 128k… 96.8
+14:15:37 running 804/807 Long-context recall 128k… 96.8
+14:16:07 running 804/807 Long-context recall 128k… 96.8
+14:16:37 completed 807/807 Done 96.8
+14:16:37 finished completed  -> /home/balancedscorpion/ServerSetup/flashnext-fp4local/results/memelint/quality-1.json
+14:16:37 spark1 llmPorts back to [8888]
+memelint (88a0529b, 96.8%) vs r3.1 (eb7b5720, 97.2%), paired by item id; proxy cache misses: 0
+cat          this      r3.1          corrected prompts          unchanged prompts
+qa       138/150   138/150               0:   0 vs   0            150: 138 vs 138
+reason    40/40     40/40               40:  40 vs  40              0:   0 vs   0
+arith     40/40     40/40               40:  40 vs  40              0:   0 vs   0
+track     40/40     40/40                0:   0 vs   0             40:  40 vs  40
+gsm8k    194/200   195/200             198: 193 vs 194              2:   1 vs   1
+mmlu     257/285   258/285              95:  86 vs  87            190: 171 vs 171
+follow    38/40     39/40               14:  13 vs  14             26:  25 vs  25
+long      10/12     10/12                0:   0 vs   0             12:  10 vs  10
+total    757/807   760/807             387: 372 vs 375            420: 385 vs 385
+all: +4 -7 (McNemar exact p=0.549)  gained ['gsm8k-1176', 'mmlu-02579', 'mmlu-10640', 'mmlu-12104']  lost ['gsm8k-0782', 'gsm8k-1035', 'mmlu-01038', 'mmlu-02598', 'mmlu-03295', 'mmlu-12225', 'follow-33']
+corrected prompts: +4 -7 (McNemar exact p=0.549)  gained ['gsm8k-1176', 'mmlu-02579', 'mmlu-10640', 'mmlu-12104']  lost ['gsm8k-0782', 'gsm8k-1035', 'mmlu-01038', 'mmlu-02598', 'mmlu-03295', 'mmlu-12225', 'follow-33']
+unchanged prompts: +0 -0 (McNemar exact p=1.000)  gained []  lost []
+errors: long-256k-1(HTTP 400: {"error": {"message": "This server's maximum context length is 262144 tokens, but the rendered prompt has 314050 tokens and leaves no room for a reply, which exceeds the context window. Compact or sho), long-256k-2(HTTP 400: {"error": {"message": "This server's maximum context length is 262144 tokens, but the rendered prompt has 314100 tokens and leaves no room for a reply, which exceeds the context window. Compact or sho)
