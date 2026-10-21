@@ -27,6 +27,7 @@
 //! profile = "strict"
 //! words = ["gantry"]
 //! word-lists = ["docs/words.txt"]
+//! check = true                                 # examine these paths
 //!
 //! [scopes.docs.rules]
 //! "6.3" = "off"
@@ -51,6 +52,10 @@
 //! and words. The scopes stay in the sequence of the file. When two scopes
 //! name one file, the words of the two apply, and the last of them in the
 //! file sets the severity. See [`Config::severity`].
+//!
+//! `check` turns memelint on or off: at the top level, for a language, or
+//! for a scope. The last scope that names a file and sets `check` applies
+//! first, then the language, then the top level. See [`Config::checks`].
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -108,11 +113,14 @@ pub struct Config {
     /// Paths that are not examined, in the syntax of `.gitignore`.
     #[serde(default)]
     pub ignore: Vec<String>,
+    /// Examine the files. Default: on for code, off for prose documents, for
+    /// example Markdown. `true` turns prose on too.
+    pub check: Option<bool>,
     /// The configuration for the files of one language, by grammar name.
     #[serde(default)]
     pub languages: BTreeMap<String, Language>,
-    /// The profile, rules and words of the paths that each scope names, in
-    /// the sequence of the file.
+    /// The profile, rules, words and `check` of the paths that each scope
+    /// names, in the sequence of the file.
     #[serde(default)]
     pub scopes: IndexMap<String, Scope>,
 }
@@ -160,6 +168,10 @@ pub struct Scope {
     /// Word lists for the files in these paths.
     #[serde(default)]
     pub word_lists: Vec<String>,
+    /// Examine the files in these paths. Default: the `check` of a scope
+    /// before it that names the file, then of the language, then the
+    /// top-level `check`.
+    pub check: Option<bool>,
 }
 
 fn yes() -> bool {
@@ -284,12 +296,19 @@ impl Config {
         }
     }
 
-    /// Are the files of `language` examined? Code is, and a prose document
-    /// (`prose`) is not, unless the configuration turns the language on or off.
-    pub fn checks(&self, language: &str, prose: bool) -> bool {
-        self.languages
-            .get(language)
-            .and_then(|l| l.check)
+    /// Is a file of `language` examined? `scopes` gives the scopes that name
+    /// the file, as positions in `scopes`. The `check` of the last scope that
+    /// has one applies first, then the `check` of the language, then the
+    /// top-level `check`. Without them, code is examined, and a prose
+    /// document (`prose`) is not.
+    pub fn checks(&self, language: &str, prose: bool, scopes: &[usize]) -> bool {
+        scopes
+            .iter()
+            .rev()
+            .filter_map(|&i| self.scopes.get_index(i))
+            .find_map(|(_, s)| s.check)
+            .or_else(|| self.languages.get(language).and_then(|l| l.check))
+            .or(self.check)
             .unwrap_or(!prose)
     }
 
@@ -441,6 +460,7 @@ mod tests {
             subtree-word-lists = ["experiments/*/memelint-words.txt"]
             default-word-lists = false
             ignore = ["vendor/"]
+            check = false
 
             [rules]
             "6.3" = "off"
@@ -462,6 +482,7 @@ mod tests {
         assert_eq!(c.subtree_word_lists, ["experiments/*/memelint-words.txt"]);
         assert!(!c.default_word_lists);
         assert_eq!(c.ignore, ["vendor/"]);
+        assert_eq!(c.check, Some(false));
         assert_eq!(c.languages["rust"].words, ["frobnicate"]);
         assert_eq!(c.languages["rust"].word_lists, ["rust.txt"]);
         assert_eq!(c.languages["rust"].default_word_lists, Some(true));
@@ -473,13 +494,60 @@ mod tests {
     #[test]
     fn check_defaults_to_code_only() {
         let c = Config::default();
-        assert!(c.checks("python", false));
-        assert!(!c.checks("markdown", true));
+        assert!(c.checks("python", false, &[]));
+        assert!(!c.checks("markdown", true, &[]));
         // The configuration turns a language on or off.
         let c = config("[languages.markdown]\ncheck = true");
-        assert!(c.checks("markdown", true));
+        assert!(c.checks("markdown", true, &[]));
         let c = config("[languages.python]\ncheck = false");
-        assert!(!c.checks("python", false));
+        assert!(!c.checks("python", false, &[]));
+    }
+
+    #[test]
+    fn check_of_the_top_level_and_of_scopes() {
+        let c = config(
+            r#"
+            check = false
+
+            [languages.rust]
+            check = true
+
+            [scopes.on]
+            paths = ["on/"]
+            check = true
+
+            [scopes.off]
+            paths = ["off/"]
+            check = false
+
+            [scopes.words]
+            paths = ["words/"]
+            words = ["gantry"]
+            "#,
+        );
+        // The top-level `check = false` turns code off, but not a language
+        // with `check = true`.
+        assert!(!c.checks("python", false, &[]));
+        assert!(c.checks("rust", false, &[]));
+        // A scope with `check = true` applies before the top level, for
+        // code and for prose.
+        assert!(c.checks("python", false, &[0]));
+        assert!(c.checks("markdown", true, &[0]));
+        // A scope with `check = false` applies before the language.
+        assert!(!c.checks("rust", false, &[1]));
+        // When two scopes set `check`, the last of them applies.
+        assert!(!c.checks("python", false, &[0, 1]));
+        // A scope without `check` does not change the language or the
+        // scope before it.
+        assert!(c.checks("rust", false, &[2]));
+        assert!(!c.checks("python", false, &[2]));
+        assert!(!c.checks("rust", false, &[1, 2]));
+        // The top-level `check = true` turns prose on too, and a language
+        // applies before it.
+        let c = config("check = true");
+        assert!(c.checks("markdown", true, &[]));
+        let c = config("check = true\n[languages.markdown]\ncheck = false");
+        assert!(!c.checks("markdown", true, &[]));
     }
 
     #[test]
@@ -529,6 +597,7 @@ mod tests {
             profile = "strict"
             words = ["gantry"]
             word-lists = ["docs/words.txt", "https://example.com/docs.txt"]
+            check = true
 
             [scopes.docs.rules]
             "6.3" = "off"
@@ -543,10 +612,11 @@ mod tests {
             ["docs/words.txt", "https://example.com/docs.txt"]
         );
         assert_eq!(docs.rules["6.3"], Severity::Off);
+        assert_eq!(docs.check, Some(true));
         // The URL of a scope is in `urls`, for `memelint fetch`.
         assert_eq!(c.urls(), ["https://example.com/docs.txt"]);
-        // A scope has no `check`, and no other key that is not in the list.
-        assert!(toml::from_str::<Config>("[scopes.x]\npaths = [\"x/\"]\ncheck = true").is_err());
+        // A scope has no `ignore`, and no other key that is not in the list.
+        assert!(toml::from_str::<Config>("[scopes.x]\npaths = [\"x/\"]\nignore = []").is_err());
     }
 
     #[test]
@@ -849,6 +919,7 @@ mod schema {
         assert_eq!(
             keys(&schema),
             [
+                "check",
                 "default-word-lists",
                 "ignore",
                 "languages",
@@ -874,7 +945,7 @@ mod schema {
         let scope = &schema["properties"]["scopes"]["additionalProperties"];
         assert_eq!(
             keys(scope),
-            ["paths", "profile", "rules", "word-lists", "words"]
+            ["check", "paths", "profile", "rules", "word-lists", "words"]
         );
         assert_eq!(scope["required"], serde_json::json!(["paths"]));
         assert_eq!(
@@ -910,6 +981,7 @@ mod schema {
             subtree-word-lists = []
             default-word-lists = true
             ignore = []
+            check = true
             [rules]
             "1.1" = "error"
             [languages.rust]
@@ -924,6 +996,7 @@ mod schema {
             profile = "strict"
             words = []
             word-lists = []
+            check = false
             [scopes.docs.rules]
             "1.1" = "off"
         "#;

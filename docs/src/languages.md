@@ -12,4 +12,4 @@ These are the grammar files that Neovim and nixpkgs make. The Nix package sets `
 
 A `[languages.<name>]` table has the keys `check`, `words`, `word-lists`, `default-word-lists` and `rules`, for the files of that language.
 
-Markdown files are prose. memelint reads their paragraphs, headings and table cells, and not their code blocks. When memelint walks a directory, it does not examine Markdown files, unless `[languages.markdown]` has `check = true`. It examines a file that you name on the command line, for example `memelint check README.md`.
+Markdown files are prose. memelint reads their paragraphs, headings and table cells, and not their code blocks. When memelint walks a directory, it does not examine Markdown files, unless `[languages.markdown]`, a scope that names them or the top level has `check = true`. It examines a file that you name on the command line, for example `memelint check README.md`.

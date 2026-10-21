@@ -11,6 +11,7 @@ word-lists = ["words.txt", "https://example.com/team-words.txt"]
 subtree-word-lists = ["experiments/*/memelint-words.txt"]
 default-word-lists = true
 ignore = ["vendor/", "*.generated.go"]
+check = false                      # examine files (default: true for code, false for prose)
 
 [rules]
 "6.3" = "warning"                  # "error", "warning" or "off"
@@ -28,6 +29,7 @@ default-word-lists = true
 paths = ["docs/"]                  # as in .gitignore, from the directory of memelint.toml
 profile = "strict"
 words = ["gantry"]
+check = true                       # examine the files in these paths
 
 [scopes.docs.rules]
 "6.3" = "off"
@@ -42,8 +44,10 @@ words = ["gantry"]
 | `subtree-word-lists` | globs of word files, each for the directory of the file and all directories below it, see [Words](words.md) |
 | `default-word-lists` | use the bundled lists (default: `true`) |
 | `ignore` | paths that memelint does not examine, in the syntax of `.gitignore` |
+| `check` | examine files (default: `true` for code, `false` for prose); `true` also examines prose |
 | `languages.<name>` | the same keys for the files of one language, see [Languages](languages.md) |
 | `languages.<name>.check` | examine the files of one language (default: `true` for code, `false` for prose) |
 | `scopes.<name>` | the profile, rules and words of the paths that `paths` names, see [Rules](rules.md) |
+| `scopes.<name>.check` | examine the files in these paths; this applies before the language and the top level |
 
-Markdown files are prose. memelint examines them only when `[languages.markdown]` has `check = true`.
+Markdown files are prose. memelint examines them only when `[languages.markdown]`, a scope or the top level has `check = true`.

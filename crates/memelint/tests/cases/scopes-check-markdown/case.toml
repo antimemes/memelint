@@ -1,0 +1,3 @@
+# A scope with `check = true` turns Markdown on in `notes.md`, without
+# `[languages.markdown]`: the output is as in `markdown-on`.
+worktree = "docs"

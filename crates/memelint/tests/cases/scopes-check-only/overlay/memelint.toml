@@ -1,0 +1,6 @@
+profile = "strict"
+check = false
+
+[scopes.a]
+paths = ["parts/a/"]
+check = true

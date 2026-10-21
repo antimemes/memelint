@@ -1,0 +1,5 @@
+profile = "strict"
+
+[scopes.notes]
+paths = ["notes.md"]
+check = true

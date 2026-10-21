@@ -1,0 +1,3 @@
+# `check = false` at the top level turns memelint off, and a scope with
+# `check = true` turns it on again in `parts/a/`: only those files are examined.
+worktree = "subtree"

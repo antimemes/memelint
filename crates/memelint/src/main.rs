@@ -239,10 +239,17 @@ fn list_files(
         let Some(grammar) = grammars.for_path(&path) else {
             continue;
         };
-        // A file given on the command line is examined when its language is
-        // off. The files of a directory are not.
+        // The scopes that name this file. The path starts at the directory
+        // of the configuration file; a file that is not below it is in no
+        // scope.
+        let in_scopes = match relative(&path).strip_prefix(relative(config_dir)) {
+            Ok(in_tree) => config.scopes_of(&scopes, in_tree),
+            Err(_) => Vec::new(),
+        };
+        // A file given on the command line is examined when its language or
+        // scope is off. The files of a directory are not.
         let named = roots.contains(&path);
-        if !named && !config.checks(&grammar.name, grammar.prose) {
+        if !named && !config.checks(&grammar.name, grammar.prose, &in_scopes) {
             continue;
         }
         if overlap && !seen.insert(std::fs::canonicalize(&path).unwrap_or_else(|_| path.clone())) {
@@ -255,13 +262,6 @@ fn list_files(
             .filter(|(_, (dir, _))| relative(&path).starts_with(dir))
             .map(|(i, _)| i)
             .collect();
-        // The scopes that name this file. The path starts at the directory
-        // of the configuration file; a file that is not below it is in no
-        // scope.
-        let in_scopes = match relative(&path).strip_prefix(relative(config_dir)) {
-            Ok(in_tree) => config.scopes_of(&scopes, in_tree),
-            Err(_) => Vec::new(),
-        };
         let key = (grammar.name.clone(), lists, in_scopes);
         let group = match group_of.get(&key) {
             Some(&i) => i,

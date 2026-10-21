@@ -45,4 +45,6 @@ profile = "strict"
 
 In these paths, the scope rules apply first, then `[languages.<name>.rules]`, then `[rules]`, then the scope profile, then the top-level profile. When two scopes name one file, the last of them in `memelint.toml` sets the severity, and the words of the two apply.
 
+A scope with `check = true` or `check = false` turns memelint on or off in its paths. The `check` of the last scope applies first, then the `check` of the language, then the top-level `check`.
+
 A rule that gives no findings cannot be set. memelint stops with an error message when it reads `memelint.toml`.

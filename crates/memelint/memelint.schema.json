@@ -29,6 +29,10 @@
       "type": "array",
       "items": { "type": "string" }
     },
+    "check": {
+      "description": "Examine the files. Default: true for code, false for prose documents such as Markdown. true examines prose too. The check of a language or a scope applies before this value.",
+      "type": "boolean"
+    },
     "languages": {
       "description": "The configuration for the files of one language, by tree-sitter grammar name.",
       "type": "object",
@@ -51,7 +55,7 @@
       }
     },
     "scopes": {
-      "description": "The profile, rules and words of the paths that `paths` names. When two scopes name one file, the words of both apply, and the scope that is later in the file sets the severity.",
+      "description": "The profile, rules, words and check of the paths that `paths` names. When two scopes name one file, the words of both apply, and the scope that is later in the file sets the severity and the check.",
       "type": "object",
       "additionalProperties": {
         "type": "object",
@@ -70,7 +74,11 @@
           },
           "rules": { "$ref": "#/$defs/rules" },
           "words": { "$ref": "#/$defs/words" },
-          "word-lists": { "$ref": "#/$defs/word-lists" }
+          "word-lists": { "$ref": "#/$defs/word-lists" },
+          "check": {
+            "description": "Examine the files in these paths. Default: the check of a scope before it that names the file, then of the language, then the top-level check.",
+            "type": "boolean"
+          }
         }
       }
     }
