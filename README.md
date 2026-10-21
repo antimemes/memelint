@@ -102,7 +102,7 @@ words = ["monomorphize"]
 
 A word list has one word on each line. The list of a project becomes long; the [`memelint.toml`](memelint.toml) of this repository is an example.
 
-[The bundled word lists](crates/memelint/words/) are not complete, and your help is necessary. When you add a word of your language or of software to your list, send it in a pull request.
+[The bundled word lists](crates/memelint/words/) are not complete, and your aid is necessary. When you add a word of your language or of software to your list, send it in a pull request.
 
 ## Development
 
