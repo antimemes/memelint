@@ -1,0 +1,15 @@
+memelint (88a0529b, 96.8%) vs r3.1 (eb7b5720, 97.2%), paired by item id; proxy cache misses: 0
+cat          this      r3.1          corrected prompts          unchanged prompts
+qa       138/150   138/150               0:   0 vs   0            150: 138 vs 138
+reason    40/40     40/40               40:  40 vs  40              0:   0 vs   0
+arith     40/40     40/40               40:  40 vs  40              0:   0 vs   0
+track     40/40     40/40                0:   0 vs   0             40:  40 vs  40
+gsm8k    194/200   195/200             198: 193 vs 194              2:   1 vs   1
+mmlu     257/285   258/285              95:  86 vs  87            190: 171 vs 171
+follow    38/40     39/40               14:  13 vs  14             26:  25 vs  25
+long      10/12     10/12                0:   0 vs   0             12:  10 vs  10
+total    757/807   760/807             387: 372 vs 375            420: 385 vs 385
+all: +4 -7 (McNemar exact p=0.549)  gained ['gsm8k-1176', 'mmlu-02579', 'mmlu-10640', 'mmlu-12104']  lost ['gsm8k-0782', 'gsm8k-1035', 'mmlu-01038', 'mmlu-02598', 'mmlu-03295', 'mmlu-12225', 'follow-33']
+corrected prompts: +4 -7 (McNemar exact p=0.549)  gained ['gsm8k-1176', 'mmlu-02579', 'mmlu-10640', 'mmlu-12104']  lost ['gsm8k-0782', 'gsm8k-1035', 'mmlu-01038', 'mmlu-02598', 'mmlu-03295', 'mmlu-12225', 'follow-33']
+unchanged prompts: +0 -0 (McNemar exact p=1.000)  gained []  lost []
+errors: long-256k-1(HTTP 400: {"error": {"message": "This server's maximum context length is 262144 tokens, but the rendered prompt has 314050 tokens and leaves no room for a reply, which exceeds the context window. Compact or sho), long-256k-2(HTTP 400: {"error": {"message": "This server's maximum context length is 262144 tokens, but the rendered prompt has 314100 tokens and leaves no room for a reply, which exceeds the context window. Compact or sho)
