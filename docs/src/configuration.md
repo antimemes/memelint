@@ -51,3 +51,5 @@ check = true                       # examine the files in these paths
 | `scopes.<name>.check` | examine the files in these paths; this applies before the language and the top level |
 
 Markdown files are prose. memelint examines them only when `[languages.markdown]`, a scope or the top level has `check = true`.
+
+A line in a file can turn findings off. See [Directives](directives.md).

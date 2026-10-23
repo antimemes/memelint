@@ -2,6 +2,7 @@ mod check;
 mod config;
 mod defaults;
 mod dict;
+mod directives;
 mod extract;
 mod fix;
 mod grammars;
@@ -598,9 +599,14 @@ fn lint(
     scopes: &[usize],
 ) -> (usize, Vec<(check::Finding, config::Severity)>) {
     let comments = extract::extract(grammar, source);
+    let directives = directives::parse(source);
     let findings = comments
         .iter()
-        .flat_map(|c| check::check(c, dict, allow))
+        .flat_map(|c| {
+            check::check(c, dict, allow)
+                .into_iter()
+                .filter(|f| !directives::hides(&directives, c, &comments, f.rule))
+        })
         .filter_map(|f| match config.severity(f.rule, &grammar.name, scopes) {
             config::Severity::Off => None,
             severity => Some((f, severity)),
