@@ -11,6 +11,7 @@ words = [
   # this project
   "memelint", "memelint-common", "memelint-import", "allowlist", "checker",
   "schema", # the JSON Schema of memelint.toml
+  "sarif", # the SARIF 2.1.0 report of --format sarif
   "importer", "finding", "fix", "vocabulary", "rule", "worktree",
   "overlay",
   "scope", # a [scopes.<name>] table: paths that have a profile, rules and words

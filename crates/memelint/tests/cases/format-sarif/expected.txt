@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app.js"
+                },
+                "region": {
+                  "startColumn": 37,
+                  "startLine": 2
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'grue' is not approved; use 'wide'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "app.js"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'zap' is not approved; it is approved only as a technical verb (add it to memelint.toml if it is one here)"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 5,
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'zorch up' is not approved; use 'lift'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 19,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'frob' is approved only as a verb; as an adjective use 'wide'"
+          },
+          "ruleId": "1.2"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 5,
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'blorp' is not approved; it is approved only as a technical name (add it to memelint.toml if it is one here)"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 15,
+                  "startLine": 4
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml"
+          },
+          "ruleId": "1.6"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "sentence has 27 words; the STE limit for descriptive text is 25"
+          },
+          "ruleId": "6.3"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'snarfed' ('snarf') is not approved; use 'frob' or 'turn'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "lib.rs"
+                },
+                "region": {
+                  "startColumn": 43,
+                  "startLine": 7
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'quux' is not approved; use 'gantry'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'hoist' is not approved; use 'lift'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startColumn": 24,
+                  "startLine": 8
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'don't' is a contraction; write the words in full"
+          },
+          "ruleId": "4.2"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "main.py"
+                },
+                "region": {
+                  "startColumn": 17,
+                  "startLine": 9
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'frobbing' is the -ing form of 'frob'; STE allows only the infinitive, imperative, past tense and past participle"
+          },
+          "ruleId": "3.5"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "sub/notes.c"
+                },
+                "region": {
+                  "startColumn": 4,
+                  "startLine": 1
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'hoist' is not approved; use 'lift'"
+          },
+          "ruleId": "1.1"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "util.go"
+                },
+                "region": {
+                  "startColumn": 21,
+                  "startLine": 3
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'it's' is a contraction; write the words in full"
+          },
+          "ruleId": "4.2"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://memelint.antimemetics.institute",
+          "name": "memelint",
+          "properties": {
+            "asdSte100Issue": 0
+          },
+          "rules": [
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "1.1",
+              "name": "STE 1.1",
+              "shortDescription": {
+                "text": "Use only approved words, technical nouns and technical verbs"
+              }
+            },
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "1.2",
+              "name": "STE 1.2",
+              "shortDescription": {
+                "text": "Use approved words only as their listed part of speech"
+              }
+            },
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "1.6",
+              "name": "STE 1.6",
+              "shortDescription": {
+                "text": "An unapproved word only when it is a technical noun"
+              }
+            },
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "3.5",
+              "name": "STE 3.5",
+              "shortDescription": {
+                "text": "-ing only in technical nouns"
+              }
+            },
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "4.2",
+              "name": "STE 4.2",
+              "shortDescription": {
+                "text": "No words removed, no contractions"
+              }
+            },
+            {
+              "helpUri": "https://memelint.antimemetics.institute/rules.html",
+              "id": "6.3",
+              "name": "STE 6.3",
+              "shortDescription": {
+                "text": "Descriptive sentences of at most 25 words"
+              }
+            }
+          ],
+          "version": "0.0.1"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
+6 files, 10 comments, 14 errors, 0 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix, and 5 more with --fix --unsafe-fixes

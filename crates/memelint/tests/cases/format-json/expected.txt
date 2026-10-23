@@ -1,0 +1,159 @@
+{
+  "issue": 0,
+  "files": 6,
+  "comments": 10,
+  "errors": 14,
+  "warnings": 0,
+  "findings": [
+    {
+      "path": "app.js",
+      "line": 2,
+      "column": 37,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'grue' is not approved; use 'wide'",
+      "fix": {
+        "start": 40,
+        "end": 44,
+        "replacement": "wide",
+        "safe": false
+      }
+    },
+    {
+      "path": "app.js",
+      "line": 7,
+      "column": 4,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'zap' is not approved; it is approved only as a technical verb (add it to memelint.toml if it is one here)"
+    },
+    {
+      "path": "lib.rs",
+      "line": 1,
+      "column": 5,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'zorch up' is not approved; use 'lift'",
+      "fix": {
+        "start": 4,
+        "end": 12,
+        "replacement": "Lift",
+        "safe": false
+      }
+    },
+    {
+      "path": "lib.rs",
+      "line": 3,
+      "column": 19,
+      "severity": "error",
+      "rule": "1.2",
+      "message": "'frob' is approved only as a verb; as an adjective use 'wide'"
+    },
+    {
+      "path": "lib.rs",
+      "line": 4,
+      "column": 5,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'blorp' is not approved; it is approved only as a technical name (add it to memelint.toml if it is one here)"
+    },
+    {
+      "path": "lib.rs",
+      "line": 4,
+      "column": 15,
+      "severity": "error",
+      "rule": "1.6",
+      "message": "'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml"
+    },
+    {
+      "path": "lib.rs",
+      "line": 7,
+      "column": 4,
+      "severity": "error",
+      "rule": "6.3",
+      "message": "sentence has 27 words; the STE limit for descriptive text is 25"
+    },
+    {
+      "path": "lib.rs",
+      "line": 7,
+      "column": 4,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'snarfed' ('snarf') is not approved; use 'frob' or 'turn'"
+    },
+    {
+      "path": "lib.rs",
+      "line": 7,
+      "column": 43,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'quux' is not approved; use 'gantry'",
+      "fix": {
+        "start": 166,
+        "end": 170,
+        "replacement": "gantry",
+        "safe": false
+      }
+    },
+    {
+      "path": "main.py",
+      "line": 1,
+      "column": 4,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'hoist' is not approved; use 'lift'",
+      "fix": {
+        "start": 3,
+        "end": 8,
+        "replacement": "Lift",
+        "safe": false
+      }
+    },
+    {
+      "path": "main.py",
+      "line": 8,
+      "column": 24,
+      "severity": "error",
+      "rule": "4.2",
+      "message": "'don't' is a contraction; write the words in full",
+      "fix": {
+        "start": 93,
+        "end": 98,
+        "replacement": "do not",
+        "safe": true
+      }
+    },
+    {
+      "path": "main.py",
+      "line": 9,
+      "column": 17,
+      "severity": "error",
+      "rule": "3.5",
+      "message": "'frobbing' is the -ing form of 'frob'; STE allows only the infinitive, imperative, past tense and past participle"
+    },
+    {
+      "path": "sub/notes.c",
+      "line": 1,
+      "column": 4,
+      "severity": "error",
+      "rule": "1.1",
+      "message": "'hoist' is not approved; use 'lift'",
+      "fix": {
+        "start": 3,
+        "end": 8,
+        "replacement": "Lift",
+        "safe": false
+      }
+    },
+    {
+      "path": "util.go",
+      "line": 3,
+      "column": 21,
+      "severity": "error",
+      "rule": "4.2",
+      "message": "'it's' is a contraction; write the words in full"
+    }
+  ]
+}
+6 files, 10 comments, 14 errors, 0 warnings (ASD-STE100 issue 0)
+note: 1 findings can be fixed with --fix, and 5 more with --fix --unsafe-fixes
