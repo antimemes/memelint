@@ -15,6 +15,8 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 `memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full. `--unsafe-fixes` also replaces each unapproved word with the one alternative of the same part of speech; examine the diff.
 
+`memelint check --format json` writes the findings as JSON on stdout. The summary stays on stderr. `--format sarif` writes SARIF 2.1.0. The default `--format text` is the line form above.
+
 ## Usage
 
 The release binaries are for Linux and macOS, on x86_64 and aarch64:

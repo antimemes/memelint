@@ -5,3 +5,4 @@
   - [Words](words.md)
   - [Rules](rules.md)
   - [Languages](languages.md)
+- [Output format](output.md)
