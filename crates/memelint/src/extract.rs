@@ -27,9 +27,19 @@ pub struct Line {
 #[derive(Debug, Clone, Default)]
 pub struct Comment {
     pub lines: Vec<Line>,
+    /// First line of the comment in the source, with lines that are not
+    /// prose, for example markers and `memelint:` lines.
+    pub start_line: usize,
+    /// Last line of the comment in the source.
+    pub end_line: usize,
 }
 
 impl Comment {
+    /// Is `line` (1-based) in this comment in the source?
+    pub fn contains_line(&self, line: usize) -> bool {
+        self.start_line <= line && line <= self.end_line
+    }
+
     pub fn text(&self) -> String {
         self.lines
             .iter()
@@ -215,7 +225,7 @@ static RE_TRAILER: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"\s*(\*/|"""|''')\s*$"#).unwrap());
 static RE_DIRECTIVE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"(?i)^(noqa|type:|pylint|pyright|mypy|flake8|ruff:|eslint|prettier|@ts-|biome-|fmt:|rustfmt|clippy|#\[|nolint|go:|lint:|spdx|pragma|coverage|istanbul|-\*-|vim:|emacs:)",
+        r"(?i)^(noqa|type:|pylint|pyright|mypy|flake8|ruff:|eslint|prettier|@ts-|biome-|fmt:|rustfmt|clippy|#\[|nolint|go:|lint:|memelint:|spdx|pragma|coverage|istanbul|-\*-|vim:|emacs:)",
     )
     .unwrap()
 });
@@ -286,7 +296,11 @@ fn clean(raw: &RawComment) -> Option<Comment> {
     if code_like * 2 >= prose.len() {
         return None;
     }
-    Some(Comment { lines })
+    Some(Comment {
+        start_line: raw.line,
+        end_line: raw.end_line,
+        lines,
+    })
 }
 
 #[cfg(test)]
@@ -310,6 +324,20 @@ mod tests {
             texts("rs", src),
             vec!["Turn the dial.\nThen wait.", "Returns the count."]
         );
+    }
+
+    #[test]
+    fn memelint_directive_lines_are_not_prose() {
+        let src = "// memelint: ignore\n// Turn the dial.\nfn f() {}\n";
+        let lang = crate::grammars::Grammars::new(None)
+            .for_path(Path::new("x.rs"))
+            .unwrap();
+        let comments = extract(&lang, src);
+        assert_eq!(comments.len(), 1);
+        assert_eq!(comments[0].text(), "Turn the dial.");
+        assert_eq!(comments[0].start_line, 1);
+        assert_eq!(comments[0].end_line, 2);
+        assert!(comments[0].contains_line(1));
     }
 
     #[test]

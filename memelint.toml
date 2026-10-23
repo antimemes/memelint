@@ -11,6 +11,8 @@ words = [
   # this project
   "memelint", "memelint-common", "memelint-import", "allowlist", "checker",
   "schema", # the JSON Schema of memelint.toml
+  "directive", # a memelint: ignore line in a comment
+  "ignore", # the memelint: ignore directive
   "importer", "finding", "fix", "vocabulary", "rule", "worktree",
   "overlay",
   "scope", # a [scopes.<name>] table: paths that have a profile, rules and words
