@@ -1,0 +1,5 @@
+# The word lists of `subtree-word-lists` are found when `ignore` names
+# their directory. The files below a path on the command line are examined
+# when `ignore` names it.
+worktree = "subtree"
+args = ["parts/a"]

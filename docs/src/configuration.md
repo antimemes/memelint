@@ -41,7 +41,7 @@ check = true                       # examine the files in these paths
 | `rules` | the severity of one rule |
 | `words` | the technical names and verbs of the project, see [Words](words.md) |
 | `word-lists` | files, URLs and bundled lists of words |
-| `subtree-word-lists` | globs of word files, each for the directory of the file and all directories below it, see [Words](words.md) |
+| `subtree-word-lists` | globs of word files, each for the directory of the file and all directories below it; `ignore` does not apply to them, see [Words](words.md) |
 | `default-word-lists` | use the bundled lists (default: `true`) |
 | `ignore` | paths that memelint does not examine, in the syntax of `.gitignore` |
 | `check` | examine files (default: `true` for code, `false` for prose); `true` also examines prose |

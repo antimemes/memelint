@@ -1,0 +1,4 @@
+parts/b/lib.rs:1:13: error: 'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+top.py:1:12: error: 'sprocket' is not in the STE dictionary; if it is a technical name, add it to memelint.toml [STE 1.6]
+note: `subtree-word-lists`: `nothing/*/words.txt` matches no file
+5 files, 4 comments, 2 errors, 0 warnings (ASD-STE100 issue 0)

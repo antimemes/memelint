@@ -1,0 +1,2 @@
+# words known at run time; `extra.py` needs the second list too
+sprocket
