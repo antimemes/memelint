@@ -5,6 +5,7 @@ mod dict;
 mod extract;
 mod fix;
 mod grammars;
+mod report;
 mod rules;
 
 use std::cell::Cell;
@@ -57,6 +58,10 @@ enum Command {
         /// spec do not have the same meaning in all contexts: examine the diff.
         #[arg(long, requires = "fix")]
         unsafe_fixes: bool,
+        /// How to write the findings on stdout: text (the default), json, or
+        /// sarif. The summary stays on stderr.
+        #[arg(long, value_enum, default_value_t = report::Format::Text)]
+        format: report::Format,
     },
     /// Download the word lists that `memelint.toml` gives as URLs into the cache.
     #[cfg(feature = "fetch")]
@@ -78,12 +83,23 @@ fn main() -> Result<()> {
             word_list,
             fix,
             unsafe_fixes,
-        } => run_check(paths, vocab, config, grammars, word_list, fix, unsafe_fixes),
+            format,
+        } => run_check(
+            paths,
+            vocab,
+            config,
+            grammars,
+            word_list,
+            fix,
+            unsafe_fixes,
+            format,
+        ),
         #[cfg(feature = "fetch")]
         Command::Fetch { config } => run_fetch(config),
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_check(
     paths: Vec<PathBuf>,
     vocab: Option<PathBuf>,
@@ -92,6 +108,7 @@ fn run_check(
     word_lists: Vec<PathBuf>,
     fix: bool,
     unsafe_fixes: bool,
+    format: report::Format,
 ) -> Result<()> {
     let vocab_path = match memelint_common::locate(vocab.as_deref(), memelint_common::ASD_STE100) {
         Ok(path) => path,
@@ -152,7 +169,7 @@ fn run_check(
         for (i, result) in receive {
             waiting.insert(i, result);
             while let Some(result) = waiting.remove(&next) {
-                totals.add(&files[next].0, result);
+                totals.add(&files[next].0, result, format);
                 next += 1;
             }
         }
@@ -161,6 +178,15 @@ fn run_check(
         return Err(error);
     }
 
+    report::print_machine(
+        format,
+        &totals.hits,
+        dict.issue,
+        totals.files,
+        totals.comments,
+        totals.errors,
+        totals.warnings,
+    );
     let Totals {
         files,
         comments,
@@ -171,6 +197,7 @@ fn run_check(
         safe_left,
         unsafe_left,
         failed,
+        hits: _,
     } = totals;
     eprintln!(
         "{files} files, {comments} comments, {errors} errors, {warnings} warnings (ASD-STE100 issue {})",
@@ -456,12 +483,19 @@ struct Totals {
     unsafe_left: usize,
     /// Files that memelint could not examine because of an error or a panic.
     failed: usize,
+    /// Findings in the sequence of the files, for `--format json` and `--format sarif`.
+    hits: Vec<report::Hit>,
 }
 
 impl Totals {
     /// Add the result of one file to the counts. Show its findings, notes
-    /// and errors.
-    fn add(&mut self, path: &Path, result: Result<Option<Checked>, String>) {
+    /// and errors. With `--format text`, each finding is a line on stdout.
+    fn add(
+        &mut self,
+        path: &Path,
+        result: Result<Option<Checked>, String>,
+        format: report::Format,
+    ) {
         let shown = shown(path);
         let checked = match result {
             Ok(Some(checked)) => checked,
@@ -499,10 +533,21 @@ impl Totals {
                     "warning"
                 }
             };
-            println!(
-                "{shown}:{}:{}: {severity}: {} [STE {}]",
-                f.line, f.col, f.message, f.rule
-            );
+            if format == report::Format::Text {
+                println!(
+                    "{shown}:{}:{}: {severity}: {} [STE {}]",
+                    f.line, f.col, f.message, f.rule
+                );
+            }
+            self.hits.push(report::Hit {
+                path: shown.to_string(),
+                line: f.line,
+                column: f.col,
+                severity: severity.to_string(),
+                rule: f.rule.to_string(),
+                message: f.message,
+                fix: f.fix.as_ref().map(report::JsonFix::from),
+            });
         }
     }
 }

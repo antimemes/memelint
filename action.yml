@@ -9,7 +9,7 @@ inputs:
     description: The memelint release, for example v0.1.0. Default is the newest release.
     default: latest
   args:
-    description: The arguments for memelint.
+    description: The arguments for memelint. Default is check. Use `check --format json` or `check --format sarif` for a machine report on stdout.
     default: check
 
 runs:

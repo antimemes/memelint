@@ -60,6 +60,7 @@ fetch = ["dep:ureq"]
 [dev-dependencies]
 libtest-mimic = "0.8.2"
 serde.workspace = true
+serde_json.workspace = true
 
 # End-to-end runs of `memelint check` on the fixture worktrees in tests/.
 [[test]]

@@ -122,12 +122,36 @@ fn run(case_dir: &Path) -> Result<(), Failed> {
     };
     let errors = count(" errors")?;
     let warnings = count(" warnings")?;
-    let lines = stdout.lines().count();
-    if lines != errors + warnings {
-        return Err(format!(
-            "summary counts {errors} errors and {warnings} warnings but stdout has {lines} lines"
-        )
-        .into());
+    let json = case.args.iter().any(|a| a == "json");
+    let sarif = case.args.iter().any(|a| a == "sarif");
+    if json || sarif {
+        let value: serde_json::Value = serde_json::from_str(stdout.trim())
+            .map_err(|e| format!("stdout is not JSON: {e}\n{stdout}"))?;
+        let n = if json {
+            value["findings"]
+                .as_array()
+                .map(Vec::len)
+                .ok_or("JSON has no findings array")?
+        } else {
+            value["runs"][0]["results"]
+                .as_array()
+                .map(Vec::len)
+                .ok_or("SARIF has no results array")?
+        };
+        if n != errors + warnings {
+            return Err(format!(
+                "summary counts {errors} errors and {warnings} warnings but the report has {n} findings"
+            )
+            .into());
+        }
+    } else {
+        let lines = stdout.lines().count();
+        if lines != errors + warnings {
+            return Err(format!(
+                "summary counts {errors} errors and {warnings} warnings but stdout has {lines} lines"
+            )
+            .into());
+        }
     }
     let want = i32::from(errors > 0);
     if output.status.code() != Some(want) {
