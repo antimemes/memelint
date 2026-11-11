@@ -1,0 +1,4 @@
+profile = "strict"
+
+subtree-word-lists = ["parts/*/memelint-words.txt"]
+ignore = ["parts/"]

@@ -42,6 +42,12 @@ enum Command {
         /// before $MEMELINT_GRAMMARS and $XDG_DATA_HOME/memelint/grammars.
         #[arg(long)]
         grammars: Option<PathBuf>,
+        /// A file of words for each file of this run, with the words of the
+        /// configuration: one word on each line, `#` starts a comment. The
+        /// path starts at the directory in which memelint runs. Give the
+        /// option one time for each list.
+        #[arg(long, value_name = "FILE")]
+        word_list: Vec<PathBuf>,
         /// Write the fixes into the files: contractions in full. A file is
         /// written only when its code parses the same before and after.
         #[arg(long)]
@@ -69,9 +75,10 @@ fn main() -> Result<()> {
             vocab,
             config,
             grammars,
+            word_list,
             fix,
             unsafe_fixes,
-        } => run_check(paths, vocab, config, grammars, fix, unsafe_fixes),
+        } => run_check(paths, vocab, config, grammars, word_list, fix, unsafe_fixes),
         #[cfg(feature = "fetch")]
         Command::Fetch { config } => run_fetch(config),
     }
@@ -82,6 +89,7 @@ fn run_check(
     vocab: Option<PathBuf>,
     config_path: PathBuf,
     grammar_dir: Option<PathBuf>,
+    word_lists: Vec<PathBuf>,
     fix: bool,
     unsafe_fixes: bool,
 ) -> Result<()> {
@@ -91,6 +99,14 @@ fn run_check(
     };
     let dict = dict::Dictionary::load(&vocab_path)?;
     let config = config::Config::load(&config_path)?;
+    // The lists of `--word-list`, as their text. They apply to each file.
+    let extra = word_lists
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .with_context(|| format!("cannot read word list {}", path.display()))
+        })
+        .collect::<Result<Vec<String>>>()?;
     let mut grammars = grammars::Grammars::new(grammar_dir.as_deref());
 
     let roots = if paths.is_empty() {
@@ -105,6 +121,7 @@ fn run_check(
         &roots,
         &config,
         &config_path,
+        &extra,
         &mut grammars,
         fix,
     )
@@ -209,13 +226,14 @@ struct Listing {
 }
 
 /// Put the files below `roots` that memelint examines into `listing`, in the
-/// sequence of the walk. An error stops the list. The files before the error
-/// stay in `listing`.
+/// sequence of the walk. `extra` is the text of each list of `--word-list`.
+/// An error stops the list. The files before the error stay in `listing`.
 fn list_files(
     listing: &mut Listing,
     roots: &[PathBuf],
     config: &config::Config,
     config_path: &Path,
+    extra: &[String],
     grammars: &mut grammars::Grammars,
     fix: bool,
 ) -> Result<()> {
@@ -269,6 +287,9 @@ fn list_files(
                 let mut allow = config.allowlist(&grammar.name, config_path, &key.2)?;
                 for &i in &key.1 {
                     allow.extend(&subtree[i].1);
+                }
+                for text in extra {
+                    allow.extend(text);
                 }
                 listing.groups.push(Group {
                     grammar,
@@ -544,8 +565,10 @@ fn relative(path: &Path) -> &Path {
 }
 
 /// The word lists that `subtree-word-lists` names, with the directory of
-/// each. All directories below the configuration file are examined, because
-/// a list can be above the paths given on the command line.
+/// each. memelint starts at the configuration file and not at the paths
+/// given on the command line, because a list can be above them. `ignore`
+/// and `.gitignore` do not apply: the configuration names these files. A
+/// note names each glob that gives no file.
 fn subtree_word_lists(
     config: &config::Config,
     config_dir: &Path,
@@ -554,22 +577,74 @@ fn subtree_word_lists(
         return Ok(Vec::new());
     }
     let globs = config.subtree_globs()?;
+    let prefixes = config.subtree_prefixes()?;
+    let mut found = Vec::new();
+    find_lists(config_dir, Path::new(""), &globs, &prefixes, &mut found);
+    let mut matched = vec![false; config.subtree_word_lists.len()];
     let mut lists = Vec::new();
-    let (files, stop) = walk_files(&[config_dir.to_path_buf()], config);
-    for file in files {
-        let path = relative(&file);
-        let Ok(in_tree) = path.strip_prefix(relative(config_dir)) else {
-            continue;
-        };
-        if !globs.is_match(in_tree) {
-            continue;
+    for in_tree in found {
+        for i in globs.matches(&in_tree) {
+            matched[i] = true;
         }
+        let file = config_dir.join(&in_tree);
         let text = std::fs::read_to_string(&file)
             .with_context(|| format!("cannot read {}", file.display()))?;
-        let dir = path.parent().unwrap_or(Path::new("")).to_path_buf();
+        let dir = relative(&file)
+            .parent()
+            .unwrap_or(Path::new(""))
+            .to_path_buf();
         lists.push((dir, text));
     }
-    stop.map_or(Ok(lists), Err)
+    for (entry, _) in config
+        .subtree_word_lists
+        .iter()
+        .zip(matched)
+        .filter(|(_, m)| !m)
+    {
+        eprintln!("note: `subtree-word-lists`: `{entry}` matches no file");
+    }
+    Ok(lists)
+}
+
+/// Put the files below `dir` that `globs` select into `found`, as paths from
+/// the configuration directory, sorted. `in_tree` is `dir` as such a path.
+/// Only a directory that is the start of a glob (`prefixes`) is examined. A
+/// link to a directory is not followed. A directory that memelint cannot
+/// read gets a note, not an error. With `**`, the glob names directories
+/// that are not part of the project, for example the data of a container.
+fn find_lists(
+    dir: &Path,
+    in_tree: &Path,
+    globs: &globset::GlobSet,
+    prefixes: &globset::GlobSet,
+    found: &mut Vec<PathBuf>,
+) {
+    let read: std::io::Result<Vec<std::fs::DirEntry>> =
+        std::fs::read_dir(dir).and_then(|entries| entries.collect());
+    let mut entries = match read {
+        Ok(entries) => entries,
+        Err(e) => {
+            eprintln!(
+                "note: `subtree-word-lists`: cannot read directory {}: {e}",
+                shown(dir)
+            );
+            return;
+        }
+    };
+    entries.sort_by_key(std::fs::DirEntry::file_name);
+    for entry in entries {
+        let path = in_tree.join(entry.file_name());
+        let Ok(kind) = entry.file_type() else {
+            continue;
+        };
+        if kind.is_dir() {
+            if prefixes.is_match(&path) {
+                find_lists(&entry.path(), &path, globs, prefixes, found);
+            }
+        } else if globs.is_match(&path) && entry.path().is_file() {
+            found.push(path);
+        }
+    }
 }
 
 /// How many findings `--fix` can remove, and `--fix --unsafe-fixes`.

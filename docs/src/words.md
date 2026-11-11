@@ -60,6 +60,14 @@ torque-ramp
 swashplate
 ```
 
-The words of a file apply to the directory of the file and to all directories below it. A glob with `*` or `**` can find no file, and that is not an error. A path without `*` or `**` must be a file, as with `word-lists`. A path that ends with `/` is an error: the key names files, not directories. You select the file name: memelint has no default name, and it reads only the files you name.
+The words of a file apply to the directory of the file and to all directories below it. memelint reads the files from the directories below `memelint.toml`: `ignore` and `.gitignore` do not apply to them. A glob with `*` or `**` can find no file; that is not an error, and a note names the glob. A path without `*` or `**` must be a file, as with `word-lists`. A path that ends with `/` is an error: the key names files, not directories. You select the file name: memelint has no default name, and it reads only the files you name.
 
 A scope, `[scopes.<name>]`, also has `words` and `word-lists`, for the paths it names (see [Rules](rules.md)).
+
+## Words of one run
+
+A program that writes text can check it with words that it knows only at run time. `--word-list <file>` adds the words of a file to each file of the run. The file has one word on each line and `#` comments, and its path starts at the directory in which memelint runs. Give the option one time for each list:
+
+```console
+$ memelint check --word-list papers/toy/words.txt papers/toy/report
+```

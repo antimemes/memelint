@@ -215,6 +215,7 @@ impl Config {
             }
         }
         config.subtree_globs()?;
+        config.subtree_prefixes()?;
         Ok(config)
     }
 
@@ -230,6 +231,27 @@ impl Config {
                     format!("`subtree-word-lists`: `{entry}` is not a valid pattern")
                 })?;
             set.add(glob);
+        }
+        set.build()
+            .context("`subtree-word-lists`: the patterns do not compile")
+    }
+
+    /// The directories that can have a file of `subtree-word-lists` below
+    /// them, as one `GlobSet`: for `a/*/words.txt`, the globs `a` and
+    /// `a/*`. memelint examines only these directories for the files. The
+    /// full glob is in the set too: `parts/**` has directories below `parts`.
+    pub fn subtree_prefixes(&self) -> Result<GlobSet> {
+        let mut set = GlobSetBuilder::new();
+        for entry in &self.subtree_word_lists {
+            for prefix in glob_prefixes(entry) {
+                let glob = GlobBuilder::new(prefix)
+                    .literal_separator(true)
+                    .build()
+                    .with_context(|| {
+                        format!("`subtree-word-lists`: `{entry}` is not a valid pattern")
+                    })?;
+                set.add(glob);
+            }
         }
         set.build()
             .context("`subtree-word-lists`: the patterns do not compile")
@@ -367,6 +389,28 @@ impl Config {
             .filter(|s| is_url(s))
             .collect()
     }
+}
+
+/// The text of `glob` before each `/`, and the full glob: for `a/*/w.txt`,
+/// `a`, `a/*` and the glob. When a `/` is in `{}` or `[]`, the directories
+/// above the file are not prefixes of the glob; then `**`, each directory.
+fn glob_prefixes(glob: &str) -> Vec<&str> {
+    let mut prefixes = Vec::new();
+    let mut depth = 0usize;
+    let mut escaped = false;
+    for (i, c) in glob.char_indices() {
+        match c {
+            _ if escaped => escaped = false,
+            '\\' => escaped = true,
+            '{' | '[' => depth += 1,
+            '}' | ']' => depth = depth.saturating_sub(1),
+            '/' if depth > 0 => return vec!["**"],
+            '/' if i > 0 => prefixes.push(&glob[..i]),
+            _ => {}
+        }
+    }
+    prefixes.push(glob);
+    prefixes
 }
 
 /// A rule id in `[rules]` must be a rule that gives findings.
@@ -797,6 +841,53 @@ mod tests {
         assert!(all.is_match("memelint-words.txt"));
         // No entries: a set that selects no path.
         assert!(!Config::default().subtree_globs().unwrap().is_match("x"));
+    }
+
+    #[test]
+    fn subtree_prefixes_are_the_directories_above_the_files() {
+        let one = config(r#"subtree-word-lists = ["experiments/*/memelint-words.txt"]"#)
+            .subtree_prefixes()
+            .unwrap();
+        assert!(one.is_match("experiments"));
+        assert!(one.is_match("experiments/govsim"));
+        assert!(!one.is_match("experiments/govsim/deep"));
+        assert!(!one.is_match("target"));
+        // `**` is no directory, one directory or more.
+        let all = config(r#"subtree-word-lists = ["a/**/b/words.txt"]"#)
+            .subtree_prefixes()
+            .unwrap();
+        assert!(all.is_match("a"));
+        assert!(all.is_match("a/b"));
+        assert!(all.is_match("a/x/y"));
+        assert!(all.is_match("a/x/y/b"));
+        assert!(!all.is_match("b"));
+        // A file at the top: no directory to examine.
+        let top = config(r#"subtree-word-lists = ["words.txt"]"#)
+            .subtree_prefixes()
+            .unwrap();
+        assert!(!top.is_match("x"));
+        // A glob that ends in `**` has directories below it.
+        let below = config(r#"subtree-word-lists = ["parts/**"]"#)
+            .subtree_prefixes()
+            .unwrap();
+        assert!(below.is_match("parts"));
+        assert!(below.is_match("parts/a/deep"));
+        assert!(!below.is_match("other"));
+        // A `/` in `{}` or `[]`: the directories are not prefixes of the
+        // glob, thus each directory is examined.
+        let braces = config(r#"subtree-word-lists = ["{parts/a,parts/b}/words.txt"]"#)
+            .subtree_prefixes()
+            .unwrap();
+        assert!(braces.is_match("parts"));
+        assert!(braces.is_match("parts/a"));
+        assert!(braces.is_match("other/deep"));
+        assert_eq!(glob_prefixes("{a/b,c}/w.txt"), ["**"]);
+        assert_eq!(glob_prefixes("[/]/w.txt"), ["**"]);
+        // `\/` is a `/` in a name; `{a,b}` without `/` is one directory.
+        assert_eq!(
+            glob_prefixes(r"a/{b,c}/d\/e/w.txt"),
+            ["a", "a/{b,c}", r"a/{b,c}/d\/e", r"a/{b,c}/d\/e/w.txt"]
+        );
     }
 
     #[test]

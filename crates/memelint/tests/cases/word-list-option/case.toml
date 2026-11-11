@@ -1,0 +1,4 @@
+# The words of each `--word-list` file apply to each file of the run, with
+# the words of memelint.toml.
+worktree = "subtree"
+args = ["--word-list", "run-words.txt", "--word-list", "more-words.txt"]
