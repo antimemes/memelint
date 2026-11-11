@@ -1,0 +1,4 @@
+profile = "strict"
+
+[languages.markdown]
+check = true

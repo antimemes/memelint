@@ -15,6 +15,8 @@ foo.py:4:7: error: 'closing' is the -ing form of 'close'; STE allows only the in
 
 `memelint check --fix` writes safe fixes automatically: each contraction becomes the words in full. `--unsafe-fixes` also replaces each unapproved word with the one alternative of the same part of speech; examine the diff.
 
+A line `memelint: ignore` in a comment tells memelint not to give findings for that comment. `memelint: ignore 4.2` turns one rule off. `memelint: ignore-next` applies to the next comment. `memelint: ignore-file` applies to the file.
+
 ## Usage
 
 The release binaries are for Linux and macOS, on x86_64 and aarch64:

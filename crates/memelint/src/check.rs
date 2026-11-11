@@ -864,21 +864,25 @@ mod tests {
     /// each line in `text`.
     fn comment(text: &str) -> Comment {
         let mut byte = 0;
+        let lines: Vec<Line> = text
+            .split('\n')
+            .enumerate()
+            .map(|(i, t)| {
+                let line = Line {
+                    line: i + 1,
+                    col: 1,
+                    byte,
+                    text: t.to_string(),
+                };
+                byte += t.len() + 1;
+                line
+            })
+            .collect();
+        let end_line = lines.last().map(|l| l.line).unwrap_or(1);
         Comment {
-            lines: text
-                .split('\n')
-                .enumerate()
-                .map(|(i, t)| {
-                    let line = Line {
-                        line: i + 1,
-                        col: 1,
-                        byte,
-                        text: t.to_string(),
-                    };
-                    byte += t.len() + 1;
-                    line
-                })
-                .collect(),
+            start_line: 1,
+            end_line,
+            lines,
         }
     }
 
